@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160">
+  <g transform="translate(10,20) scale(0.6)">
+    <rect x="14" y="14" width="172" height="172" rx="38" fill="#0E3A5C"/>
+    <rect x="30" y="30" width="140" height="140" rx="26" fill="none" stroke="#B9812A" stroke-width="3"/>
+    <path d="M58 104 L88 134 L146 70" fill="none" stroke="#B9812A" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="155" y="106" font-family="Fraunces, Georgia, serif" font-size="64">
+    <tspan fill="#0E3A5C" font-weight="500">China</tspan><tspan fill="#B9812A" font-weight="700">Verus</tspan>
+  </text>
+</svg>

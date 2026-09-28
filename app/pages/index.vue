@@ -1,0 +1,12 @@
+<template>
+   <div>
+    <HeroSection/>
+    <RiskSection/>
+    <HowItWorksSection/>
+    <ServicesSection/>
+    <TestimonySection/>
+    <ContactSection/>
+    <MapSection/>
+    <BookVerifySection/>
+   </div>
+</template>
