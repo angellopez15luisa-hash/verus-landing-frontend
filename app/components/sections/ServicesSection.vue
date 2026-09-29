@@ -7,7 +7,6 @@ const { generalSetting, pending, error, titleSection, descriptionSection } =
 let observer: IntersectionObserver | null = null;
 
 onMounted(() => {
-  // Seleccionamos tanto las tarjetas como los elementos con fade-in-up
   const elements = document.querySelectorAll(".card-animate, .fade-in-up");
   if (elements.length === 0) return;
 
@@ -42,62 +41,67 @@ onUnmounted(() => {
     id="services"
     class="min-h-screen flex items-center justify-center bg-white text-slate-900 py-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
   >
-    <!-- Contenedor extra ancho para expandir las 4 columnas perfectamente -->
+    <!-- Contenedor principal -->
     <div class="max-w-7xl w-full mx-auto text-center">
       <!-- Encabezado de la Sección con Animación -->
       <div class="text-center space-y-5 pb-16">
         <h2
-          class="fade-in-up text-4xl  font-black tracking-tight leading-tight"
+          class="fade-in-up text-4xl font-black tracking-tight leading-tight"
           style="transition-delay: 0ms"
         >
-        <span
-            class="bg-clip-text text-slate-800"
-          >
-          {{ titleSection('services') }}
+          <span class="bg-clip-text text-slate-800">
+            {{ titleSection('services') }}
           </span>
         </h2>
         <p
           class="fade-in-up text-slate-600 text-2xl mt-2"
           style="transition-delay: 100ms"
         >
-          <!-- Verificamos tu proveedor, tu producto y tu carga antes de que el dinero salga de tu cuenta. -->
           {{ descriptionSection("services") }}
         </p>
       </div>
 
-      <!-- Cuadrícula de 1 columnas estilizada, compacta y tipografía sutil -->
+      <!-- Cuadrícula de servicios -->
       <div
-        class="grid grid-cols-1 gap-6 pt-16 border-t border-black/15 w-full mx-auto px-4"
+        class="grid grid-cols-1 gap-20 pt-16 border-t border-black/15 w-full mx-auto px-4"
       >
-        <!-- Fila 1 -->
-        <template v-for="item in generalSetting?.services" :key="item.id">
+        <template v-for="(item, index) in generalSetting?.services" :key="item.id || index">
           <div
-            class="card-animate grid lg:grid-cols-2 gap-16 items-center text-left"
-            style="transition-delay: 200ms"
             v-if="item.isActive"
+            class="card-animate grid lg:grid-cols-2 gap-12 lg:gap-16 items-center text-left"
+            :style="`transition-delay: ${200 + (index * 150)}ms`"
           >
-            <div>
-              <img
-                :src="item.image"
-                :alt="item.title"
-                class="w-full h-full object-cover object-top rounded-xl shadow-lg"
-              />
+            <!-- Contenedor de la Imagen (Alterna el orden en pantallas grandes si es impar) -->
+            <div :class="index % 2 !== 0 ? 'lg:order-2' : 'lg:order-1'">
+              <div class="relative overflow-hidden rounded-2xl shadow-xl aspect-video lg:aspect-[4/3] bg-slate-100">
+                <img
+                  :src="item.image"
+                  :alt="item.title"
+                  loading="lazy"
+                  class="w-full h-full object-cover object-center hover:scale-105 transition-transform duration-500"
+                />
+              </div>
             </div>
-            <div>
-              <h3 class="text-secondary text-3xl font-bold mb-6">
+
+            <!-- Contenedor de Texto -->
+            <div :class="index % 2 !== 0 ? 'lg:order-1' : 'lg:order-2'" class="space-y-6">
+              <h3 class="text-secondary text-3xl font-bold">
                 {{ item.title }}
               </h3>
-              <p class="text-gray-700 text-lg leading-relaxed mb-6">
+              <p class="text-gray-700 text-lg leading-relaxed">
                 {{ item.text_short }}
               </p>
-              <p class="text-gray-700 text-lg leading-relaxed mb-8">
+              <p class="text-gray-700 text-lg leading-relaxed">
                 {{ item.description_short }}
               </p>
-              <button
-                class="border-2 border-primary text-primary px-8 py-3 !rounded-button font-semibold text-base whitespace-nowrap hover:bg-primary hover:text-white transition-all"
-              >
-                Conocer Más
-              </button>
+              <div>
+                <a
+                  href="#contact"
+                  class="inline-block border-2 border-primary text-primary px-8 py-3 rounded-xl font-semibold text-base hover:bg-primary hover:text-white transition-all shadow-sm"
+                >
+                  Conocer Más
+                </a>
+              </div>
             </div>
           </div>
         </template>

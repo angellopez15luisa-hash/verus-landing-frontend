@@ -40,13 +40,15 @@ onUnmounted(() => {
     id="start"
     class="relative min-h-screen flex items-center justify-center pt-20 text-white overflow-hidden bg-slate-900"
   >
-    <!-- Background Image with Dynamic Cinematic Motion Effect (No shrinking) -->
+    <!-- Background ImageOptimizado para LCP y Cloudinary -->
     <div class="absolute inset-0 z-0 overflow-hidden">
       <img
         v-if="generalSetting?.banners"
         :src="generalSetting.banners[0]?.image"
         alt="Supplier warehouse and logistics quality inspection background"
-        class="w-full h-full object-cover object-center animate-[cinematicMotion_10s_ease-in-out_infinite_alternate]"
+        class="w-full h-full object-cover object-center"
+        fetchpriority="high"
+        loading="eager"
       />
       <!-- Semi-transparent gradient overlay -->
       <div
@@ -83,12 +85,6 @@ onUnmounted(() => {
           class="fade-in-up text-base sm:text-lg lg:text-xl text-slate-100 max-w-4xl font-medium leading-relaxed drop-shadow-md"
           style="transition-delay: 150ms"
         >
-          <!-- Cada año, importadores en Perú y Latinoamérica pierden miles de
-          dólares por proveedores que no existen, mercadería que no cumple lo
-          pactado o contenedores mal cargados que llegan dañados. Nosotros
-          verificamos tu proveedor, tu producto y tu carga antes de que el
-          dinero salga de tu cuenta — no después de que ya sea tarde para
-          reclamar. -->
           {{ generalSetting?.descriptionStart }}
         </p>
 

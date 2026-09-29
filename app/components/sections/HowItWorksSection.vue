@@ -7,7 +7,6 @@ const { generalSetting, pending, error, titleSection, descriptionSection } =
 let observer: IntersectionObserver | null = null;
 
 onMounted(() => {
-  // Seleccionamos tanto las tarjetas como los elementos con fade-in-up
   const elements = document.querySelectorAll(".card-animate, .fade-in-up");
   if (elements.length === 0) return;
 
@@ -44,8 +43,7 @@ onUnmounted(() => {
   >
     <!-- Contenedor principal -->
     <div class="max-w-7xl w-full mx-auto text-center">
-      <!-- Título con animación (delay 0ms) -->
-
+      <!-- Título y descripción -->
       <div class="text-center space-y-5 pb-16">
         <h2
           class="fade-in-up text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight"
@@ -54,124 +52,48 @@ onUnmounted(() => {
           <span
             class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-amber-300"
           >
-            <!-- ¿Cómo funciona? -->
             {{ titleSection("how-it-works") }}
           </span>
         </h2>
 
-        <!-- Párrafo principal con animación (delay 100ms) -->
         <p
           class="fade-in-up text-2xl text-slate-200"
           style="transition-delay: 100ms"
         >
-          <!-- We believe that reliable quality control requires total dedication.
-        Our technicians are direct employees rigorously trained to protect
-        your commercial interests in Asia. -->
           {{ descriptionSection("how-it-works") }}
         </p>
       </div>
 
-      <!-- Mini metrics grid de 4 tarjetas -->
+      <!-- Mini metrics grid dinámico de tarjetas -->
       <div
         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-16 border-t border-white/15 w-full mx-auto px-4"
       >
-        <!-- Tarjeta 1 (Delay 200ms) -->
         <div
-          class="card-animate bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/15 shadow-sm text-left flex flex-col items-start justify-between min-h-[220px] overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:bg-white/[0.15] hover:border-amber-400/40 hover:shadow-2xl hover:shadow-amber-500/10"
-          style="transition-delay: 200ms"
-          v-for="item in generalSetting?.contentHowItWorks"
+          v-for="(item, index) in generalSetting?.contentHowItWorks"
+          :key="item.id || index"
+          class="card-animate bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/15 shadow-sm text-left flex flex-col items-start justify-between min-h-[220px] overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:bg-white/[0.15] hover:shadow-2xl"
+          :class="index % 2 === 0 ? 'hover:border-amber-400/40 hover:shadow-amber-500/10' : 'hover:border-sky-400/40 hover:shadow-sky-500/10'"
+          :style="`transition-delay: ${200 + (index * 100)}ms`"
         >
           <div>
             <span
-              class="text-3xl sm:text-4xl font-black text-amber-400 tracking-tight"
+              class="text-3xl sm:text-4xl font-black tracking-tight"
+              :class="index % 2 === 0 ? 'text-amber-400' : 'text-sky-400'"
             >
-              <!-- 01 -->
               0{{ item.id }}
             </span>
             <p
-              class="text-base md:text-lg font-black text-amber-400 leading-snug w-full break-words uppercase mt-3"
+              class="text-base md:text-lg font-black leading-snug w-full break-words uppercase mt-3"
+              :class="index % 2 === 0 ? 'text-amber-400' : 'text-sky-400'"
             >
-              <!-- Reservas tu servicio -->
               {{ item.title }}
             </p>
           </div>
           <p class="text-xs sm:text-sm text-slate-300 font-medium mt-4">
-            <!-- Completas el formulario en línea y confirmas con un depósito vía
-            PayPal. -->
             {{ item.description }}
           </p>
         </div>
-
-        <!-- Tarjeta 2 (Delay 300ms) -->
-        <!-- <div
-          class="card-animate bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/15 shadow-sm text-left flex flex-col items-start justify-between min-h-[220px] overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:bg-white/[0.15] hover:border-sky-400/40 hover:shadow-2xl hover:shadow-sky-500/10"
-          style="transition-delay: 300ms;"
-        >
-          <div>
-            <span
-              class="text-3xl sm:text-4xl font-black text-sky-400 tracking-tight"
-            >
-              02
-            </span>
-            <p
-              class="text-base md:text-lg font-black text-sky-400 leading-snug w-full break-words uppercase mt-3"
-            >
-              Coordinamos con tu proveedor
-            </p>
-          </div>
-          <p class="text-xs sm:text-sm text-slate-300 font-medium mt-4">
-            Contactamos a la fábrica o al puerto/almacén según el servicio
-            contratado.
-          </p>
-        </div> -->
-
-        <!-- Tarjeta 3 (Delay 400ms) -->
-        <!-- <div
-          class="card-animate bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/15 shadow-sm text-left flex flex-col items-start justify-between min-h-[220px] overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:bg-white/[0.15] hover:border-amber-400/40 hover:shadow-2xl hover:shadow-amber-500/10"
-          style="transition-delay: 400ms;"
-        >
-          <div>
-            <span
-              class="text-3xl sm:text-4xl font-black text-amber-400 tracking-tight"
-            >
-              03
-            </span>
-            <p
-              class="text-base md:text-lg font-black text-amber-400 leading-snug w-full break-words uppercase mt-3"
-            >
-              Verificamos en sitio
-            </p>
-          </div>
-          <p class="text-xs sm:text-sm text-slate-300 font-medium mt-4">
-            Nuestro equipo audita, inspecciona o supervisa presencialmente,
-            con evidencia en video.
-          </p>
-        </div> -->
-
-        <!-- Tarjeta 4 (Delay 500ms) -->
-        <!-- <div
-          class="card-animate bg-white/10 backdrop-blur-md p-8 rounded-2xl border border-white/15 shadow-sm text-left flex flex-col items-start justify-between min-h-[220px] overflow-hidden transition-all duration-300 hover:-translate-y-2 hover:bg-white/[0.15] hover:border-sky-400/40 hover:shadow-2xl hover:shadow-sky-500/10"
-          style="transition-delay: 500ms;"
-        >
-          <div>
-            <span
-              class="text-3xl sm:text-4xl font-black text-sky-400 tracking-tight"
-            >
-              04
-            </span>
-            <p
-              class="text-base md:text-lg font-black text-sky-400 leading-snug w-full break-words uppercase mt-3"
-            >
-              Recibes tu reporte
-            </p>
-          </div>
-          <p class="text-xs sm:text-sm text-slate-300 font-medium mt-4">
-            Informe claro en 24-48 horas para decidir con total seguridad
-            antes de pagar o embarcar.
-          </p>
-        </div> -->
       </div>
-      
     </div>
   </section>
 </template>
@@ -187,7 +109,6 @@ onUnmounted(() => {
   will-change: opacity, transform;
 }
 
-/* Mantener transiciones suaves extra para los hovers de las tarjetas */
 .card-animate {
   transition:
     opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1) var(--tw-transition-delay, 0ms),
