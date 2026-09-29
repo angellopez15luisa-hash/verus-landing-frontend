@@ -11,7 +11,7 @@ export const useGeneralSettings = async () => {
     error,
     refresh,
   } = await useFetch<GeneralSettingResponse | null>(
-    `${config.public.apiBase}/general-settings/public`,
+    `${config.public.apiBase}/api/general-settings/public`,
     {
       transform: (data) => {
         const response = generalSettingDataResponseSchema.safeParse(data);
