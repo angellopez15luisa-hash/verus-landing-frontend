@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 
-const { generalSetting, pending, error,getSocialUrl } = await useGeneralSettings();
+const { generalSetting, pending, error, getSocialUrl } =
+  await useGeneralSettings();
 
 const isMobileMenuOpen = ref(false);
 let observer: IntersectionObserver | null = null;
@@ -42,7 +43,19 @@ onUnmounted(() => {
     observer.disconnect();
   }
 });
- 
+
+const scrollToSection = (targetId: string, spanishSlug: string) => {
+  // 1. Buscamos el elemento real en la página por su id en inglés
+  const element = document.getElementById(targetId);
+
+  if (element) {
+    // 2. Hacemos scroll suave hacia esa sección
+    element.scrollIntoView({ behavior: "smooth" });
+
+    // 3. Cambiamos la URL arriba en el navegador a español sin recargar la página
+    window.history.pushState(null, "", `#${spanishSlug}`);
+  }
+};
 </script>
 
 <template>
@@ -68,7 +81,7 @@ onUnmounted(() => {
       <nav
         class="hidden lg:flex items-center space-x-6 font-medium text-slate-600 text-sm"
       >
-        <a href="#start" class="hover:text-vblue-600 transition-colors"
+        <!-- <a href="#start" class="hover:text-vblue-600 transition-colors"
           >Inicio</a
         >
         <a href="#how-it-works" class="hover:text-vblue-600 transition-colors"
@@ -81,6 +94,38 @@ onUnmounted(() => {
           >Testimonios</a
         >
         <a href="#contact" class="hover:text-vblue-600 transition-colors"
+          >Contacto</a
+        > -->
+
+        <!-- En vez de poner el href directo en inglés, usamos @click.prevent -->
+        <a
+          href="#start"
+          @click.prevent="scrollToSection('start', 'inicio')"
+          class="hover:text-vblue-600 transition-colors"
+          >Inicio</a
+        >
+        <a
+          href="#how-it-works"
+          @click.prevent="scrollToSection('how-it-works', 'como-funciona')"
+          class="hover:text-vblue-600 transition-colors"
+          >¿Cómo funciona?</a
+        >
+        <a
+          href="#services"
+          @click.prevent="scrollToSection('services', 'servicios')"
+          class="hover:text-vblue-600 transition-colors"
+          >Servicios</a
+        >
+        <a
+          href="#testimony"
+          @click.prevent="scrollToSection('testimony', 'testimonios')"
+          class="hover:text-vblue-600 transition-colors"
+          >Testimonios</a
+        >
+        <a
+          href="#contact"
+          @click.prevent="scrollToSection('contact', 'contacto')"
+          class="hover:text-vblue-600 transition-colors"
           >Contacto</a
         >
       </nav>
