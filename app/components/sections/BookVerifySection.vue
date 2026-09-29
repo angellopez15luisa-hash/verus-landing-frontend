@@ -37,7 +37,7 @@ onUnmounted(() => {
 
 <template>
   <section
-    class="text-center from-navy-900 to-vblue-700 text-dark p-8 mb-20 sm:p-12 rounded-0 relative overflow-hidden"
+    class="text-center from-navy-900 to-vblue-700 text-dark p-10 mb-20 rounded-0 relative overflow-hidden"
   >
     <div class="grid grid-cols-1 lg:grid-cols-1 gap-12 items-center">
       <div
