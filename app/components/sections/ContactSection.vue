@@ -48,12 +48,12 @@ onUnmounted(() => {
           class="fade-in-up text-4xl font-black tracking-tight leading-tight"
           style="transition-delay: 0ms"
         >
-          <span class="bg-clip-text text-white">
+          <span class="bg-clip-text text-slate-800">
             {{ titleSection('contact') }}
           </span>
         </h2>
         <p
-          class="fade-in-up text-slate-200 text-2xl mt-2"
+          class="fade-in-up text-slate-600 text-2xl mt-2"
           style="transition-delay: 100ms"
         >
           {{ descriptionSection('contact') }}
