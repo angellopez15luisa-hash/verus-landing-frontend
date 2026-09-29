@@ -3,7 +3,7 @@ const { generalSetting } = await useGeneralSettings();
 </script>
 
 <template>
-  <section class="py-6">
+  <section class="py-14">
     <!-- Usamos exactamente el mismo contenedor y padding que la tarjeta de arriba -->
     <div class="max-w-[84rem] mx-auto px-6 lg:px-8">
       
