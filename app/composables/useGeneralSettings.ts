@@ -4,7 +4,6 @@ import type { GeneralSettingResponse } from "~/types";
 
 export const useGeneralSettings = async () => {
   const config = useRuntimeConfig();
-
   const {
     data: generalSetting,
     pending,

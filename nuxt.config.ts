@@ -6,14 +6,14 @@ export default defineNuxtConfig({
   css: ["~/assets/css/main.css"],
   runtimeConfig: {
     public: {
-      apiBase:process.env.NUXT_PUBLIC_API_BASE
-    }
+      apiBase: process.env.NUXT_PUBLIC_API_BASE,
+    },
   },
   components: [
     {
-      path: '~/components',
+      path: "~/components",
       pathPrefix: false, // <-- Esto evita que anteponga el nombre de las subcarpetas
-    }
+    },
   ],
   app: {
     head: {
@@ -31,9 +31,20 @@ export default defineNuxtConfig({
         {
           rel: "stylesheet",
           href: "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css",
-        }
-        
+        },
       ],
     },
   },
+  hooks: {
+    "pages:extend"(pages) {
+      // Recorremos las páginas para buscar la que se llame 'services' o tenga esa ruta
+      pages.forEach((page) => {
+        if (page.path.startsWith("/services")) {
+          // Reemplazamos /services por /servicios en la URL pública
+          page.path = page.path.replace("/services", "/servicios");
+        }
+      });
+    },
+  },
+  
 });

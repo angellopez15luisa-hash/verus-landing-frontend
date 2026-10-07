@@ -47,7 +47,7 @@ onUnmounted(() => {
           class="fade-in-up text-4xl font-black tracking-tight leading-tight text-slate-800"
           style="transition-delay: 0ms"
         >
-          {{ titleSection('risk') }}
+          {{ titleSection("risk") }}
         </h2>
 
         <!-- Párrafo dinámico -->
@@ -60,12 +60,14 @@ onUnmounted(() => {
       </div>
 
       <!-- Grid de servicios dinámicos -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 pt-16 gap-8 border-t border-black/15 w-full mx-auto px-4">
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 pt-16 gap-8 border-t border-black/15 w-full mx-auto px-4"
+      >
         <div
           v-for="(item, index) in generalSetting?.services"
           :key="index"
           class="card-animate bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm hover:shadow-xl transition-all duration-300 group flex flex-col justify-between"
-          :style="`transition-delay: ${200 + (index * 120)}ms`"
+          :style="`transition-delay: ${200 + index * 120}ms`"
         >
           <div>
             <div
@@ -83,14 +85,23 @@ onUnmounted(() => {
             </p>
           </div>
 
-          <a
+          <!-- <a
             href="#contact"
             class="text-vblue-600 font-semibold text-sm inline-flex items-center space-x-2 group-hover:translate-x-1 transition-transform"
             aria-label="Ver más detalles sobre este servicio"
           >
             <span>Ver más</span>
             <i class="fa-solid fa-arrow-right text-xs"></i>
-          </a>
+          </a> -->
+
+          <NuxtLink
+            :to="`/servicios/${item.slug}`"
+            class="text-vblue-600 font-semibold text-sm inline-flex items-center space-x-2 group-hover:translate-x-1 transition-transform"
+            aria-label="Ver más detalles sobre este servicio"
+          >
+            <span>Ver más</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </NuxtLink>
         </div>
       </div>
     </div>

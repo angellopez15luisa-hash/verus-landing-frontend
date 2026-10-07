@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 
+const router = useRouter();
+const route = useRoute();
+
 const { generalSetting, pending, error, getSocialUrl } =
   await useGeneralSettings();
 
@@ -44,17 +47,49 @@ onUnmounted(() => {
   }
 });
 
-const scrollToSection = (targetId: string, spanishSlug: string) => {
-  // 1. Buscamos el elemento real en la página por su id en inglés
+const scrollToSection = async (targetId: string, spanishSlug: string) => {
+  // Cerramos el menú mobile por si estaba abierto
+  closeMenu();
+
+  // 1. Si estamos en una página interna (ej. /servicios/auditoria-de-proveedores)
+  if (route.path !== "/") {
+    await router.push("/");
+
+    setTimeout(() => {
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+        // CORREGIDO AQUÍ: Pasamos history.state en lugar de null
+        window.history.replaceState(history.state, "", `#${spanishSlug}`);
+      }
+    }, 100);
+    return;
+  }
+
+  // 2. Si ya estamos en el home, buscamos el elemento con el ID en inglés
   const element = document.getElementById(targetId);
 
   if (element) {
-    // 2. Hacemos scroll suave hacia esa sección
     element.scrollIntoView({ behavior: "smooth" });
-
-    // 3. Cambiamos la URL arriba en el navegador a español sin recargar la página
-    window.history.pushState(null, "", `#${spanishSlug}`);
+    // Y CORREGIDO AQUÍ TAMBIÉN: Pasamos history.state en lugar de null
+    window.history.replaceState(history.state, "", `#${spanishSlug}`);
   }
+};
+
+const goToHome = async () => {
+  // Cerramos el menú móvil por si acaso estaba abierto
+  closeMenu();
+  
+  // Limpiamos cualquier hash o ancla que haya quedado en la URL
+  if (window.location.hash) {
+    window.history.replaceState(history.state, '', window.location.pathname);
+  }
+
+  // Forzamos la navegación limpia a la raíz absoluta usando replace para resetear la vista
+  await router.replace('/');
+  
+  // Subimos el scroll arriba del todo de forma suave
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 </script>
 
@@ -68,7 +103,11 @@ const scrollToSection = (targetId: string, spanishSlug: string) => {
     >
       <!-- Logo -->
       <div class="flex items-center">
-        <a href="#" class="h-10 sm:h-12 flex items-center">
+        <a
+          @click.prevent="goToHome"
+          class="h-10 sm:h-12 flex items-center cursor-pointer"
+          aria-label="Ir al inicio"
+        >
           <img
             src="/logo.svg"
             alt="V-Trust Logo"
@@ -76,28 +115,10 @@ const scrollToSection = (targetId: string, spanishSlug: string) => {
           />
         </a>
       </div>
-
       <!-- Navigation Links (Escritorio) -->
       <nav
         class="hidden lg:flex items-center space-x-6 font-medium text-slate-600 text-sm"
       >
-        <!-- <a href="#start" class="hover:text-vblue-600 transition-colors"
-          >Inicio</a
-        >
-        <a href="#how-it-works" class="hover:text-vblue-600 transition-colors"
-          >¿Cómo funciona?</a
-        >
-        <a href="#services" class="hover:text-vblue-600 transition-colors"
-          >Servicios</a
-        >
-        <a href="#testimony" class="hover:text-vblue-600 transition-colors"
-          >Testimonios</a
-        >
-        <a href="#contact" class="hover:text-vblue-600 transition-colors"
-          >Contacto</a
-        > -->
-
-        <!-- En vez de poner el href directo en inglés, usamos @click.prevent -->
         <a
           href="#start"
           @click.prevent="scrollToSection('start', 'inicio')"
@@ -204,13 +225,13 @@ const scrollToSection = (targetId: string, spanishSlug: string) => {
         </button>
       </div>
 
-      <!-- Links del menú -->
+      <!-- Links del menú mobile actualizados con @click.prevent -->
       <nav
         class="flex flex-col items-center space-y-3 text-center w-full max-w-xs my-auto"
       >
         <a
           href="#start"
-          @click="closeMenu"
+          @click.prevent="scrollToSection('start', 'inicio')"
           class="mobile-link block w-full py-3 px-4 rounded-2xl text-2xl font-black text-slate-700 hover:text-vblue-600 hover:bg-slate-50 hover:translate-x-3 transition-all duration-300 uppercase tracking-tight"
           >Inicio</a
         >
@@ -218,7 +239,7 @@ const scrollToSection = (targetId: string, spanishSlug: string) => {
 
         <a
           href="#how-it-works"
-          @click="closeMenu"
+          @click.prevent="scrollToSection('how-it-works', 'como-funciona')"
           class="mobile-link block w-full py-3 px-4 rounded-2xl text-2xl font-black text-slate-700 hover:text-vblue-600 hover:bg-slate-50 hover:translate-x-3 transition-all duration-300 uppercase tracking-tight"
           >¿Cómo funciona?</a
         >
@@ -226,7 +247,7 @@ const scrollToSection = (targetId: string, spanishSlug: string) => {
 
         <a
           href="#services"
-          @click="closeMenu"
+          @click.prevent="scrollToSection('services', 'servicios')"
           class="mobile-link block w-full py-3 px-4 rounded-2xl text-2xl font-black text-slate-700 hover:text-vblue-600 hover:bg-slate-50 hover:translate-x-3 transition-all duration-300 uppercase tracking-tight"
           >Servicios</a
         >
@@ -234,7 +255,7 @@ const scrollToSection = (targetId: string, spanishSlug: string) => {
 
         <a
           href="#testimony"
-          @click="closeMenu"
+          @click.prevent="scrollToSection('testimony', 'testimonios')"
           class="mobile-link block w-full py-3 px-4 rounded-2xl text-2xl font-black text-slate-700 hover:text-vblue-600 hover:bg-slate-50 hover:translate-x-3 transition-all duration-300 uppercase tracking-tight"
           >Testimonios</a
         >
@@ -242,7 +263,7 @@ const scrollToSection = (targetId: string, spanishSlug: string) => {
 
         <a
           href="#contact"
-          @click="closeMenu"
+          @click.prevent="scrollToSection('contact', 'contacto')"
           class="mobile-link block w-full py-3 px-4 rounded-2xl text-2xl font-black text-slate-700 hover:text-vblue-600 hover:bg-slate-50 hover:translate-x-3 transition-all duration-300 uppercase tracking-tight"
           >Contacto</a
         >

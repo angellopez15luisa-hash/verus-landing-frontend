@@ -50,7 +50,7 @@ onUnmounted(() => {
           style="transition-delay: 0ms"
         >
           <span class="bg-clip-text text-slate-800">
-            {{ titleSection('services') }}
+            {{ titleSection("services") }}
           </span>
         </h2>
         <p
@@ -65,15 +65,20 @@ onUnmounted(() => {
       <div
         class="grid grid-cols-1 gap-20 pt-16 border-t border-black/15 w-full mx-auto px-4"
       >
-        <template v-for="(item, index) in generalSetting?.services" :key="item.id || index">
+        <template
+          v-for="(item, index) in generalSetting?.services"
+          :key="item.id || index"
+        >
           <div
             v-if="item.isActive"
             class="card-animate grid lg:grid-cols-2 gap-12 lg:gap-16 items-center text-left"
-            :style="`transition-delay: ${200 + (index * 150)}ms`"
+            :style="`transition-delay: ${200 + index * 150}ms`"
           >
             <!-- Contenedor de la Imagen (Alterna el orden en pantallas grandes si es impar) -->
             <div :class="index % 2 !== 0 ? 'lg:order-2' : 'lg:order-1'">
-              <div class="relative overflow-hidden rounded-2xl shadow-xl aspect-video lg:aspect-[4/3] bg-slate-100">
+              <div
+                class="relative overflow-hidden rounded-2xl shadow-xl aspect-video lg:aspect-[4/3] bg-slate-100"
+              >
                 <img
                   :src="item.image"
                   :alt="item.title"
@@ -84,7 +89,10 @@ onUnmounted(() => {
             </div>
 
             <!-- Contenedor de Texto -->
-            <div :class="index % 2 !== 0 ? 'lg:order-1' : 'lg:order-2'" class="space-y-6">
+            <div
+              :class="index % 2 !== 0 ? 'lg:order-1' : 'lg:order-2'"
+              class="space-y-6"
+            >
               <h3 class="text-secondary text-3xl font-bold">
                 {{ item.title }}
               </h3>
@@ -94,14 +102,15 @@ onUnmounted(() => {
               <p class="text-gray-700 text-lg leading-relaxed">
                 {{ item.description_short }}
               </p>
-              <div>
-                <a
-                  href="#contact"
-                  class="inline-block border-2 border-primary text-primary px-8 py-3 rounded-xl font-semibold text-base hover:bg-primary hover:text-white transition-all shadow-sm"
-                >
-                  Conocer Más
-                </a>
-              </div>
+              <!-- class="inline-block border-2 border-primary text-primary px-8 py-3 rounded-xl font-semibold text-base hover:bg-primary hover:text-white transition-all shadow-sm" -->
+              <NuxtLink
+                :to="`/servicios/${item.slug}`"
+                class="inline-block border-2 border-primary text-primary px-8 py-3 rounded-xl font-semibold text-base hover:bg-primary hover:text-white transition-all shadow-sm"
+                aria-label="Ver más detalles sobre este servicio"
+              >
+                <span>Conocer más</span>
+                <i class="fa-solid fa-arrow-right text-xs ml-1"></i>
+              </NuxtLink>
             </div>
           </div>
         </template>

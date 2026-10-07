@@ -214,26 +214,6 @@ export const generalSettingSchema = z.object({
     .array(contentFrequentlyQuestionSchema)
     .optional(),
   contentItemsTrusts: z.array(contentItemsTrustsSchema).optional(),
-  //   informationContact: z
-  //     .object({
-  //       address: z
-  //         .string({ message: "* La direccion debe ser texto" })
-  //         .min(1, { message: "* La direccion es requerida" }),
-  //       phone: z
-  //         .string({ message: "* El telefono debe ser texto" })
-  //         .min(1, { message: "* El telefono es requerido" }),
-  //       whatsapp: z
-  //         .string({ message: "* El whatsapp debe ser texto" })
-  //         .min(1, { message: "* El whatsapp es requerido" }),
-  //       email: z
-  //         .string({ message: "* El email debe ser texto" })
-  //         .min(1, { message: "* El email es requerido" }),
-  //       businessHours: z
-  //         .string({ message: "* El horario de atencion debe ser texto" })
-  //         .min(1, { message: "* El horario de atencion es requerido" }),
-  //     })
-  //     .optional(),
-
   informationContact: informationContactSchema.optional(),
   informationAditional: informationAditionalSchema.optional(),
 });
