@@ -45,7 +45,7 @@ onUnmounted(() => {
 <template>
   <section
     id="contact"
-    class="min-h-screen flex items-center justify-center bg-bg bg-gradient-to-b via-navy-900 to-slate-950 text-white pt-24 pb-5 px-4 sm:px-6 lg:px-8 overflow-hidden"
+    class="min-h-screen flex items-center justify-center bg-bg bg-gradient-to-b via-navy-900 to-slate-950 text-white pt-24 pb-0 px-4 sm:px-6 lg:px-8 overflow-hidden"
   >
     <div class="max-w-7xl w-full mx-auto text-center">
       <!-- Encabezado de la Sección (SEO: Estructura de títulos limpia) -->

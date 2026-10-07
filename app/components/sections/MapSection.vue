@@ -3,7 +3,7 @@ const { generalSetting } = await useGeneralSettings();
 </script>
 
 <template>
-  <section class="py-16" aria-label="Ubicación y Mapa de la Empresa">
+  <section class="py-16 mt-5" aria-label="Ubicación y Mapa de la Empresa">
     <!-- Contenedor con las medidas exactas originales -->
     <div class="max-w-[84rem] mx-auto px-6 lg:px-8">
       
