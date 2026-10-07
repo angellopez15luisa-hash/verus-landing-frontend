@@ -49,21 +49,23 @@ onUnmounted(() => {
           class="absolute -bottom-10 -right-10 w-auto h-64 rounded-full blur-3xl"
         ></div>
 
+        <!-- Usamos un h2 semántico limpio y sin código comentado que ensucie el DOM -->
         <h2
           class="text-3xl sm:text-4xl font-black text-slate-900 mb-4 tracking-tight whitespace-pre-line"
         >
-          <!-- ¿Vas a pagar por un contenedor <br /> que nunca has visto? -->
           {{ generalSetting?.informationAditional?.text_verify }}
         </h2>
 
+        <!-- Añadimos aria-label para reforzar la accesibilidad web que evalúa Lighthouse -->
         <a
           href="#contact"
           class="inline-block bg-verus-red text-white font-medium px-8 py-3.5 rounded-xl shadow-lg hover:bg-verus-gold transition-all relative z-10 group"
+          :aria-label="generalSetting?.informationAditional?.text_button_verify || 'Reserva una verificación'"
         >
-          <!-- Reserva una verificación -->
           {{ generalSetting?.informationAditional?.text_button_verify }}
           <i
             class="fa-solid fa-arrow-right transition-transform duration-300 group-hover:translate-x-1 ml-2"
+            aria-hidden="true"
           ></i>
         </a>
       </div>

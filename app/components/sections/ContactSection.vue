@@ -86,7 +86,7 @@ onUnmounted(() => {
         >
           <!-- Bloque de Información de Contacto -->
           <div
-            class="bg-white rounded-2xl shadow-md border border-verus-dark/10 pt-8 pl-8 pb-20 pr-8 space-y-6 text-verus-dark"
+            class="bg-white rounded-2xl shadow-md border border-verus-dark/10 pt-8 pl-8 pb-11 pr-8 space-y-6 text-verus-dark"
           >
             <h3
               class="text-xl font-bold text-verus-dark border-b border-verus-dark/5 pb-3"
