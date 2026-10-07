@@ -17,6 +17,9 @@ export default defineNuxtConfig({
   ],
   app: {
     head: {
+      htmlAttrs: {
+        lang: "es", // ¡Esto es vital para el SEO y Accesibilidad!
+      },
       title:
         "China Verus | Quality Control & Supplier Inspection Services in Asia",
       meta: [
@@ -46,5 +49,4 @@ export default defineNuxtConfig({
       });
     },
   },
-  
 });
