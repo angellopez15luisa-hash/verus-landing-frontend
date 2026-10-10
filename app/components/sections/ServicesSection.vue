@@ -99,7 +99,7 @@ onUnmounted(() => {
               <!-- <p class="text-gray-700 text-lg leading-relaxed">
                 {{ item.text_short }}
               </p> -->
-              <div class="text-gray-700 text-lg leading-relaxed line-clamp-4 overflow-hidden text-ellipsis" v-html="item.description_long">
+              <div class="text-gray-700 text-lg leading-relaxed line-clamp-6 overflow-hidden text-ellipsis" v-html="item.description_long">
                 <!-- {{ item.description_long }} -->
               </div>
               <!-- class="inline-block border-2 border-primary text-primary px-8 py-3 rounded-xl font-semibold text-base hover:bg-primary hover:text-white transition-all shadow-sm" -->
