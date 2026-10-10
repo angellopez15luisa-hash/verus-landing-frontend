@@ -99,9 +99,9 @@ onUnmounted(() => {
               <!-- <p class="text-gray-700 text-lg leading-relaxed">
                 {{ item.text_short }}
               </p> -->
-              <p class="text-gray-700 text-lg leading-relaxed">
-                {{ item.description_long }}
-              </p>
+              <div class="text-gray-700 text-lg leading-relaxed" v-html="item.description_long" >
+                <!-- {{ item.description_long }} -->
+              <div/>
               <!-- class="inline-block border-2 border-primary text-primary px-8 py-3 rounded-xl font-semibold text-base hover:bg-primary hover:text-white transition-all shadow-sm" -->
               <NuxtLink
                 :to="`/servicios/${item.slug}`"
