@@ -96,11 +96,11 @@ onUnmounted(() => {
               <h3 class="text-secondary text-3xl font-bold">
                 {{ item.title }}
               </h3>
-              <p class="text-gray-700 text-lg leading-relaxed">
+              <!-- <p class="text-gray-700 text-lg leading-relaxed">
                 {{ item.text_short }}
-              </p>
+              </p> -->
               <p class="text-gray-700 text-lg leading-relaxed">
-                {{ item.description_short }}
+                {{ item.description_long }}
               </p>
               <!-- class="inline-block border-2 border-primary text-primary px-8 py-3 rounded-xl font-semibold text-base hover:bg-primary hover:text-white transition-all shadow-sm" -->
               <NuxtLink
