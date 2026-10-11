@@ -200,7 +200,13 @@ const disabled = computed(() => !meta.value.valid || isSubmitting.value);
       <div
         class="bg-gray-50 items-start border border-gray-200 rounded-xl p-2 inline-block shadow-inner"
       >
-        <div class="flex items-center space-x-3">
+
+      <div 
+      class="g-recaptcha my-4" 
+      data-sitekey="6LdvBOktAAAAAB2j8yEThWL8sKUEz05NxSq4d_nx"
+    ></div>
+
+        <!-- <div class="flex items-center space-x-3">
           <input
             type="checkbox"
             id="recaptcha-mock"
@@ -221,7 +227,7 @@ const disabled = computed(() => !meta.value.valid || isSubmitting.value);
             />
             <span class="text-[8px] text-gray-400 mt-0.5">reCAPTCHA</span>
           </div>
-        </div>
+        </div> -->
       </div>
       <div class="items-center">
         <button
