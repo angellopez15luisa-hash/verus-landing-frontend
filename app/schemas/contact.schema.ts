@@ -2,10 +2,14 @@ import { z } from "zod";
 
 export const contactSchema = z.object({
   name: z
-    .string({ message: "* El nombre del contacto debe ser una cadena de texto" })
+    .string({
+      message: "* El nombre del contacto debe ser una cadena de texto",
+    })
     .min(1, { message: "* El nombre del contacto es requerido" }),
   company: z
-    .string({ message: "* El nombre de la empresa debe ser una cadena de texto" })
+    .string({
+      message: "* El nombre de la empresa debe ser una cadena de texto",
+    })
     .min(1, { message: "* La nombre de la empresa es requerido" }),
   email: z
     .string({ message: "* El email del contacto debe ser una cadena de texto" })
@@ -17,11 +21,16 @@ export const contactSchema = z.object({
     })
     .min(1, { message: "* El telefono del contacto es requerido" }),
   affair: z
-    .string({ message: "* El asunto del contacto debe ser una cadena de texto" })
+    .string({
+      message: "* El asunto del contacto debe ser una cadena de texto",
+    })
     .min(1, { message: "* El asunto del contacto es requerido" }),
   message: z
     .string({
       message: "* El Mensaje del contacto deber ser una cadena de texto",
     })
     .min(1, { message: "* El mensaje del contacto es requerido" }),
+  privacy: z.boolean().refine((val) => val === true, {
+    message: "Debes aceptar las políticas de privacidad",
+  }),
 });

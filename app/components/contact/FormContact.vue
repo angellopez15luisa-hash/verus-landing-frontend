@@ -3,10 +3,12 @@ import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
 import { contactSchema } from "~/schemas";
 import { contactFormValue } from "~/values";
-import { toast } from 'vue3-toastify';
-import 'vue3-toastify/dist/index.css';
+import { toast } from "vue3-toastify";
+import "vue3-toastify/dist/index.css";
 
 const config = useRuntimeConfig();
+const siteKey = ref("");
+const recaptchaToken = ref<string | null>(null);
 
 const { generalSetting } = await useGeneralSettings();
 
@@ -22,27 +24,64 @@ const [email] = defineField("email");
 const [phone] = defineField("phone");
 const [affair] = defineField("affair");
 const [message] = defineField("message");
+const [privacy] = defineField("privacy");
 
-const onSubmit = handleSubmit( async values => {
-    console.log(values)
-    const response = await $fetch<{success:boolean,message:string}>(`${config.public.apiBase}/api/contacts/send-email`, {
-        method: 'POST',
-        body:values
-    })
+const onSubmit = handleSubmit(async (values) => {
+  console.log(values);
+  const response = await $fetch<{ success: boolean; message: string }>(
+    `${config.public.apiBase}/api/contacts/send-email`,
+    {
+      method: "POST",
+      body: values,
+    },
+  );
 
-    resetForm()
-    toast.success(response.message)
-    console.log(response.message)
-    
-})
+  resetForm();
+  toast.success(response.message);
+  console.log(response.message);
+});
+ 
+
+onMounted(() => {
+  // Forzamos a que tome la variable pública directamente en el cliente
+  siteKey.value = config.public.recaptchaSiteKey;
+  console.log("Site Key en onMounted:", siteKey.value);
+
+  if (!siteKey.value) {
+    console.error("La clave de reCAPTCHA no está definida.");
+    return;
+  }
+
+  (window as any).onRecaptchaSuccess = (token: string) => {
+    console.log("Token capturado con éxito:", token);
+    recaptchaToken.value = token;
+  };
+
+  (window as any).onRecaptchaExpired = () => {
+    console.log("El token de reCAPTCHA expiró");
+    recaptchaToken.value = null;
+  };
+
+  // Inyectar el script de Google
+  if (!document.querySelector('script[src*="recaptcha/api.js"]')) {
+    const script = document.createElement("script");
+    script.src = "https://www.google.com/recaptcha/api.js";
+    script.async = true;
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+});
 
 const services = computed(() => generalSetting.value?.services);
 
-const disabled = computed(() => !meta.value.valid || isSubmitting.value);
+// const disabled = computed(() => !meta.value.valid || isSubmitting.value);
+const disabled = computed(
+  () => !meta.value.valid || isSubmitting.value || !recaptchaToken.value,
+);
 </script>
 
 <template>
-  <form method="POST" class="space-y-6"  @submit.prevent="onSubmit" >
+  <form method="POST" class="space-y-6" @submit.prevent="onSubmit">
     <!-- Fila 1: Nombre y Empresa -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <div>
@@ -176,7 +215,7 @@ const disabled = computed(() => !meta.value.valid || isSubmitting.value);
           id="privacidad"
           name="privacidad"
           type="checkbox"
-          required
+          v-model="privacy"
           class="h-4 w-4 text-verus-gold focus:ring-verus-gold border-verus-dark/10 rounded bg-verus-bg"
         />
       </div>
@@ -196,42 +235,22 @@ const disabled = computed(() => !meta.value.valid || isSubmitting.value);
     </div>
 
     <!-- Fila 6: Google reCAPTCHA y Botón -->
+    <!-- Fila 6: Google reCAPTCHA y Botón -->
     <div class="pt-2 grid md:grid-cols-2 gap-6 items-center">
-      <div
-        class="bg-gray-50 items-start border border-gray-200 rounded-xl p-2 inline-block shadow-inner"
-      >
-
-      <div 
-      class="g-recaptcha my-4" 
-      data-sitekey="6LdvBOktAAAAAB2j8yEThWL8sKUEz05NxSq4d_nx"
-    ></div>
-
-        <!-- <div class="flex items-center space-x-3">
-          <input
-            type="checkbox"
-            id="recaptcha-mock"
-            disabled
-            class="h-5 w-5 text-blue-600 rounded border-gray-300"
-          />
-          <label
-            for="recaptcha-mock"
-            class="text-xs text-gray-600 font-medium select-none"
-            >No soy un robot</label
-          >
-          <div class="flex flex-col items-center pl-6">
-            <img
-              src="https://www.gstatic.com/recaptcha/api2/logo_48.png"
-              alt="reCAPTCHA"
-              loading="lazy"
-              class="w-6 h-6"
-            />
-            <span class="text-[8px] text-gray-400 mt-0.5">reCAPTCHA</span>
-          </div>
-        </div> -->
+      <!-- Contenedor adaptado al tamaño real de reCAPTCHA (min-w-[304px]) -->
+      <div class="flex justify-center md:justify-start">
+        <div
+          v-if="siteKey"
+          class="g-recaptcha"
+          :data-sitekey="siteKey"
+          data-callback="onRecaptchaSuccess"
+          data-expired-callback="onRecaptchaExpired"
+        ></div>
       </div>
-      <div class="items-center">
+
+      <div class="flex items-center">
         <button
-          :disabled
+          :disabled="disabled"
           type="submit"
           class="inline-flex items-center justify-center bg-verus-red hover:bg-verus-gold text-white font-normal py-4 px-12 rounded-xl text-sm transition-colors duration-300 shadow-md hover:shadow-lg tracking-wide w-full sm:w-auto disabled:opacity-40 disabled:cursor-not-allowed"
         >

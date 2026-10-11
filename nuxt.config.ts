@@ -7,6 +7,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE,
+      recaptchaSiteKey: process.env.NUXT_PUBLIC_RECAPTCHA_SITE_KEY,
     },
   },
   components: [
@@ -17,13 +18,13 @@ export default defineNuxtConfig({
   ],
   app: {
     head: {
-      script: [
-        {
-          src: "https://www.google.com/recaptcha/api.js",
-          async: true,
-          defer: true,
-        },
-      ],
+      // script: [
+      //   {
+      //     src: "https://www.google.com/recaptcha/api.js",
+      //     async: true,
+      //     defer: true,
+      //   },
+      // ],
       htmlAttrs: {
         lang: "es", // ¡Esto es vital para el SEO y Accesibilidad!
       },
