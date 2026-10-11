@@ -75,6 +75,7 @@ const scrollToSection = async (targetId: string, spanishSlug: string) => {
     window.history.replaceState(history.state, "", `#${spanishSlug}`);
   }
 };
+ 
 
 const goToHome = async () => {
   // Cerramos el menú móvil por si acaso estaba abierto

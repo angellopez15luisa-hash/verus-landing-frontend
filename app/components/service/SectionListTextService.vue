@@ -1,9 +1,44 @@
 <script setup lang="ts">
+import { computed, onMounted, onUnmounted } from "vue";
 import type { Service } from "~/types";
 
 const props = defineProps<{
   service?: Service;
 }>();
+
+let observer: IntersectionObserver | null = null;
+
+onMounted(() => {
+  setTimeout(() => {
+    const elements = document.querySelectorAll(".card-animate, .fade-in-up");
+    if (elements.length === 0) return;
+
+    observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+          } else {
+            // Se remueve para que al subir/bajar se vuelva a animar
+            entry.target.classList.remove("is-visible");
+          }
+        });
+      },
+      {
+        threshold: 0.05,
+        rootMargin: "0px 0px 0px 0px",
+      }
+    );
+
+    elements.forEach((el) => observer?.observe(el));
+  }, 50);
+});
+
+onUnmounted(() => {
+  if (observer) {
+    observer.disconnect();
+  }
+});
 
 const includeList = computed(() => {
   const rawText = String(props.service?.which_includes || "");
@@ -15,7 +50,6 @@ const includeList = computed(() => {
     .replace(/<br\s*[\/]?>/gi, "\n")
     .split("\n")
     .map((item: string) => {
-      // Esto elimina cualquier etiqueta HTML sobrante (como los <span> con estilos)
       return item.replace(/<\/?[^>]+(>|$)/g, "").trim();
     })
     .filter((item: string) => item.length > 0)
@@ -32,7 +66,6 @@ const processList = computed(() => {
     .replace(/<br\s*[\/]?>/gi, "\n")
     .split("\n")
     .map((item: string) => {
-      // Esto elimina cualquier etiqueta HTML sobrante (como los <span> con estilos)
       return item.replace(/<\/?[^>]+(>|$)/g, "").trim();
     })
     .filter((item: string) => item.length > 0)
@@ -42,7 +75,11 @@ const processList = computed(() => {
 
 <template>
   <section class="grid grid-cols-1 md:grid-cols-2 gap-10">
-    <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+    <!-- Bloque 1: Qué incluye -->
+    <div
+      class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm fade-in-up"
+      style="transition-delay: 100ms;"
+    >
       <h3
         class="text-2xl font-bold text-verus-primary mb-6 flex items-center gap-2"
       >
@@ -55,7 +92,7 @@ const processList = computed(() => {
           :key="index"
           class="flex items-start space-x-3"
         >
-          <!-- Tu SVG del check verde -->
+          <!-- SVG Check verde -->
           <svg
             class="w-6 h-6 text-emerald-500 shrink-0 mt-0.5"
             fill="none"
@@ -70,17 +107,21 @@ const processList = computed(() => {
             ></path>
           </svg>
 
-          <!-- El texto dinámico de cada línea -->
           <span class="text-slate-600">{{ item }}</span>
         </li>
       </ul>
     </div>
-    <div class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+
+    <!-- Bloque 2: Proceso Específico -->
+    <div
+      class="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm fade-in-up"
+      style="transition-delay: 300ms;"
+    >
       <h3
         class="text-2xl font-bold text-verus-primary mb-6 flex items-center gap-2"
       >
         <span class="w-2 h-6 bg-verus-gold rounded-full inline-block"></span>
-        Proceso de Especifico
+        Proceso de Específico
       </h3>
       <ol class="space-y-6 relative border-l border-slate-200 ml-3">
         <li
@@ -88,14 +129,12 @@ const processList = computed(() => {
           :key="index"
           class="ml-6 relative"
         >
-          <!-- Círculo numerado con posición absoluta alineada a la izquierda del borde -->
           <span
             class="absolute -left-9 flex items-center justify-center w-6 h-6 bg-verus-gold text-white text-xs font-bold rounded-full shrink-0"
           >
             {{ index + 1 }}
           </span>
 
-          <!-- Texto del paso alineado correctamente para que no lo tape el círculo -->
           <h4 class="font-normal text-slate-900">{{ item }}</h4>
         </li>
       </ol>

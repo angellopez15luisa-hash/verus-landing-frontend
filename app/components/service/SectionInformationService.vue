@@ -1,23 +1,53 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted } from "vue";
 import type { Service } from "~/types";
 
 const props = defineProps<{
   service?: Service;
 }>();
 
-const descripcionLimpia = computed(() => {
-  if (!props.service?.description_long) return "";
+let observer: IntersectionObserver | null = null;
 
-  return props.service.description_long
-    .replace(/<\/p><p>/g, " ") // Une los párrafos contiguos con un espacio en lugar de un salto
-    .replace(/<\/?p>/g, ""); // Elimina las etiquetas <p> restantes
+onMounted(() => {
+  setTimeout(() => {
+    const elements = document.querySelectorAll(".card-animate, .fade-in-up");
+    if (elements.length === 0) return;
+
+    observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+          } else {
+            // Esto remueve la clase al salir de la pantalla, permitiendo que se repita al volver a entrar
+            entry.target.classList.remove("is-visible");
+          }
+        });
+      },
+      {
+        threshold: 0.05, // Se activa apenas asoma un 5% del elemento
+        rootMargin: "0px 0px 0px 0px", // Sin márgenes restrictivos para que reaccione rápido al subir/bajar
+      },
+    );
+
+    elements.forEach((el) => observer?.observe(el));
+  }, 50);
+});
+
+onUnmounted(() => {
+  if (observer) {
+    observer.disconnect();
+  }
 });
 </script>
 
 <template>
   <section class="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
-    <!-- Columna Izquierda: Descripciones -->
-    <div class="lg:col-span-2 space-y-6">
+    <!-- Columna Izquierda: Descripciones con animación -->
+    <div
+      class="lg:col-span-2 space-y-6 fade-in-up"
+      style="transition-delay: 100ms"
+    >
       <!-- Descripción corta -->
       <div
         class="p-6 bg-white shadow-lg shadow-gray-600/30 border-l-4 border-verus-primary rounded-r-lg"
@@ -28,9 +58,6 @@ const descripcionLimpia = computed(() => {
           En resumen
         </h2>
         <p class="text-lg text-slate-700 font-normal leading-relaxed">
-          <!-- Verificamos que tu proveedor exista, tenga capacidad real de
-          producción y cumpla estándares antes de que firmes un contrato o
-          pagues un adelanto -->
           {{ service?.description_short }}
         </p>
       </div>
@@ -44,9 +71,10 @@ const descripcionLimpia = computed(() => {
       </div>
     </div>
 
-    <!-- Columna Derecha: Tarjeta de Reserva y Pago -->
+    <!-- Columna Derecha: Tarjeta de Reserva y Pago con animación en cascada -->
     <div
-      class="bg-white p-6 rounded-2xl shadow-xl border border-slate-100 space-y-6 lg:sticky lg:top-8"
+      class="bg-white p-6 rounded-2xl shadow-xl border border-slate-100 space-y-6 lg:sticky lg:top-8 fade-in-up"
+      style="transition-delay: 300ms"
     >
       <div>
         <span class="text-sm text-verus-primary font-medium"

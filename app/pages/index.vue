@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const { generalSetting } = await useGeneralSettings();
 
+
 const info = computed(() => generalSetting.value?.informationAditional);
 
 useHead({
