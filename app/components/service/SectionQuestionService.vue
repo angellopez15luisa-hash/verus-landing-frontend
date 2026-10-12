@@ -29,7 +29,7 @@ onMounted(() => {
       {
         threshold: 0.05,
         rootMargin: "0px 0px 0px 0px",
-      }
+      },
     );
 
     elements.forEach((el) => observer?.observe(el));

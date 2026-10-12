@@ -6,5 +6,6 @@ export const contactFormValue: ContactForm = {
   company: "",
   email: "",
   phone: "",
-  affair: "",
+  service: "",
+  privacy: false,
 };

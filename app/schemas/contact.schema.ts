@@ -20,11 +20,11 @@ export const contactSchema = z.object({
       message: "* El telefono del contacto debe ser una cadena de texto",
     })
     .min(1, { message: "* El telefono del contacto es requerido" }),
-  affair: z
+  service: z
     .string({
-      message: "* El asunto del contacto debe ser una cadena de texto",
+      message: "* El servicio debe ser una cadena de texto",
     })
-    .min(1, { message: "* El asunto del contacto es requerido" }),
+    .min(1, { message: "* El servicio es requerido" }),
   message: z
     .string({
       message: "* El Mensaje del contacto deber ser una cadena de texto",
@@ -34,3 +34,5 @@ export const contactSchema = z.object({
     message: "Debes aceptar las políticas de privacidad",
   }),
 });
+
+

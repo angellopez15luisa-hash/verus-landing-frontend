@@ -57,17 +57,20 @@ onUnmounted(() => {
         </h2>
 
         <!-- Añadimos aria-label para reforzar la accesibilidad web que evalúa Lighthouse -->
-        <a
-          href="#contact"
-          class="inline-block bg-verus-red text-white font-medium px-8 py-3.5 rounded-xl shadow-lg hover:bg-verus-gold transition-all relative z-10 group"
-          :aria-label="generalSetting?.informationAditional?.text_button_verify || 'Reserva una verificación'"
+        <NuxtLink
+          to="/formulario-reserva"
+          class="inline-block bg-verus-red text-white font-medium px-8 py-3.5 rounded-xl shadow-lg hover:bg-verus-red/90 transition-all"
+          :aria-label="
+            generalSetting?.informationAditional?.text_button_verify ||
+            'Reserva una verificación'
+          "
         >
           {{ generalSetting?.informationAditional?.text_button_verify }}
           <i
             class="fa-solid fa-arrow-right transition-transform duration-300 group-hover:translate-x-1 ml-2"
             aria-hidden="true"
           ></i>
-        </a>
+        </NuxtLink>
       </div>
     </div>
   </section>

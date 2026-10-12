@@ -22,7 +22,7 @@ const [name] = defineField("name");
 const [company] = defineField("company");
 const [email] = defineField("email");
 const [phone] = defineField("phone");
-const [affair] = defineField("affair");
+const [service] = defineField("service");
 const [message] = defineField("message");
 const [privacy] = defineField("privacy");
 
@@ -81,7 +81,7 @@ const disabled = computed(
 </script>
 
 <template>
-  <form method="POST" class="space-y-6" @submit.prevent="onSubmit">
+  <form  class="space-y-6" @submit.prevent="onSubmit">
     <!-- Fila 1: Nombre y Empresa -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <div>
@@ -155,7 +155,7 @@ const disabled = computed(
       >
       <div class="relative">
         <select
-          v-model="affair"
+          v-model="service"
           class="w-full px-4 py-3 bg-verus-bg border border-verus-dark/10 rounded-xl text-sm text-verus-dark focus:outline-none focus:border-verus-gold focus:ring-1 focus:ring-verus-gold transition duration-200 appearance-none"
         >
           <option value="" disabled selected>Selecciona una opción</option>
@@ -167,14 +167,11 @@ const disabled = computed(
           >
             {{ service.title }}
           </option>
-          <!-- <option value="cotizacion">Cotización</option>
-          <option value="soporte">Soporte a un servicio en curso</option>
-          <option value="alianza">Alianza comercial</option>
-          <option value="otro">Otro</option> -->
+         
           <option value="otro">Otro</option>
         </select>
-        <span v-if="errors.affair" class="custom-alert">{{
-          errors.affair
+        <span v-if="errors.service" class="custom-alert">{{
+          errors.service
         }}</span>
         <div
           class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-verus-primary"
@@ -263,6 +260,6 @@ const disabled = computed(
 <style scoped>
 @reference "tailwindcss";
 .custom-alert {
-  @apply text-red-500 text-xs block;
+  @apply text-red-500 text-xs block mt-1;
 }
 </style>

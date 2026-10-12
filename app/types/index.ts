@@ -2,7 +2,9 @@ export type {
   GeneralSetting,
   GeneralSettingDataResponse,
   GeneralSettingResponse,
-  Service
+  Service,
 } from "./general-setting.type";
 
-export type { ContactForm,Contact } from './contact.type'
+export type { ContactForm, Contact } from "./contact.type";
+
+export type { BookingForm, Booking } from "./booking.type";

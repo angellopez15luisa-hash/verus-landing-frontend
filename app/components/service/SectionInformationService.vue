@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from "vue";
 import type { Service } from "~/types";
+ 
 
 const props = defineProps<{
   service?: Service;
@@ -76,7 +77,7 @@ onUnmounted(() => {
       class="bg-white p-6 rounded-2xl shadow-xl border border-slate-100 space-y-6 lg:sticky lg:top-8 fade-in-up"
       style="transition-delay: 300ms"
     >
-      <div>
+      <!-- <div>
         <span class="text-sm text-verus-primary font-medium"
           >Inversión del servicio</span
         >
@@ -84,19 +85,19 @@ onUnmounted(() => {
           <span class="text-3xl font-extrabold text-verus-gold">$299</span>
           <span class="text-verus-gold text-sm">USD</span>
         </div>
-      </div>
+      </div> -->
 
       <hr class="border-slate-100" />
 
       <!-- Botones de Acción -->
       <div class="space-y-3">
         <!-- Botón Reservar -->
-        <a
-          href="#reservar"
+        <NuxtLink
+          to="/formulario-reserva"
           class="w-full inline-flex justify-center items-center px-6 py-3.5 bg-verus-primary hover:bg-verus-red text-white font-bold rounded-xl shadow-lg shadow-verus-primary-600/30 transition-all duration-200"
         >
           Reservar Asesoría
-        </a>
+        </NuxtLink>
 
         <!-- Botón PayPal -->
         <button
