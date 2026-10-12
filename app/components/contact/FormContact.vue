@@ -26,18 +26,32 @@ const [message] = defineField("message");
 const [privacy] = defineField("privacy");
 
 const onSubmit = handleSubmit(async (values) => {
-  console.log(values);
-  const response = await $fetch<{ success: boolean; message: string }>(
-    `${config.public.apiBase}/api/contacts/send-email`,
-    {
-      method: "POST",
-      body: values,
-    },
-  );
+  try {
+    // Unimos los valores del formulario con el token del captcha
+    const payload = {
+      ...values,
+      recaptchaToken: recaptchaToken.value,
+    };
 
-  resetForm();
-  toast.success(response.message);
-  console.log(response.message);
+    console.log("Enviando payload al backend:", payload);
+
+    const response = await $fetch<{ success: boolean; message: string }>(
+      `${config.public.apiBase}/api/contacts/send-email`,
+      {
+        method: "POST",
+        body: payload,
+      },
+    );
+
+    resetForm();
+    recaptchaToken.value = null;
+    toast.success(response.message);
+  } catch (error: any) {
+    console.error("Error al enviar formulario:", error);
+    // Muestra el mensaje exacto que responde el backend en lugar de caerse silenciosamente
+    const errorMessage = error?.data?.message || "Ocurrió un error al enviar el correo.";
+    toast.error(errorMessage);
+  }
 });
 
 onMounted(() => {
