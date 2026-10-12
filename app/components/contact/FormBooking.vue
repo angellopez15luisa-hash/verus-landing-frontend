@@ -65,13 +65,41 @@ onMounted(() => {
     recaptchaToken.value = null;
   };
 
-  // Inyectar el script de Google
-  if (!document.querySelector('script[src*="recaptcha/api.js"]')) {
+  // Función para renderizar el captcha de forma segura si ya está cargado
+  const renderCaptcha = () => {
+    if ((window as any).grecaptcha && typeof (window as any).grecaptcha.render === 'function') {
+      try {
+        // Busca todos los divs con la clase g-recaptcha que no se hayan renderizado
+        const containers = document.querySelectorAll('.g-recaptcha');
+        containers.forEach((container) => {
+          if (!container.hasChildNodes()) {
+            (window as any).grecaptcha.render(container, {
+              sitekey: siteKey.value,
+              callback: 'onRecaptchaSuccess',
+              'expired-callback': 'onRecaptchaExpired',
+            });
+          }
+        });
+      } catch (e) {
+        console.log("Error al renderizar reCAPTCHA:", e);
+      }
+    }
+  };
+
+  // Inyectar el script de Google si no existe
+  const existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
+  if (!existingScript) {
     const script = document.createElement("script");
-    script.src = "https://www.google.com/recaptcha/api.js";
+    script.src = "https://www.google.com/recaptcha/api.js?render=explicit"; // Añadimos ?render=explicit para control total
     script.async = true;
     script.defer = true;
+    script.onload = () => {
+      renderCaptcha();
+    };
     document.head.appendChild(script);
+  } else {
+    // Si el script ya estaba cargado en otra vista, intentamos renderizarlo inmediatamente con un pequeño respiro del DOM
+    setTimeout(renderCaptcha, 200);
   }
 });
 

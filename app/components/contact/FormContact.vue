@@ -7,7 +7,6 @@ import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 
 const config = useRuntimeConfig();
-const siteKey = ref("");
 const recaptchaToken = ref<string | null>(null);
 
 const { generalSetting } = await useGeneralSettings();
@@ -40,48 +39,102 @@ const onSubmit = handleSubmit(async (values) => {
   toast.success(response.message);
   console.log(response.message);
 });
- 
 
 onMounted(() => {
-  // Forzamos a que tome la variable pública directamente en el cliente
-  siteKey.value = config.public.recaptchaSiteKey;
-  console.log("Site Key en onMounted:", siteKey.value);
+  const siteKey = config.public.recaptchaSiteKey;
+  console.log("Site Key en onMounted (Contacto):", siteKey);
 
-  if (!siteKey.value) {
+  if (!siteKey) {
     console.error("La clave de reCAPTCHA no está definida.");
     return;
   }
 
-  (window as any).onRecaptchaSuccess = (token: string) => {
-    console.log("Token capturado con éxito:", token);
+  // Callbacks únicos para el formulario de contacto
+  (window as any).onContactRecaptchaSuccess = (token: string) => {
+    console.log("Token de contacto capturado con éxito:", token);
     recaptchaToken.value = token;
   };
 
-  (window as any).onRecaptchaExpired = () => {
-    console.log("El token de reCAPTCHA expiró");
+  (window as any).onContactRecaptchaExpired = () => {
+    console.log("El token de reCAPTCHA de contacto expiró");
     recaptchaToken.value = null;
   };
 
-  // Inyectar el script de Google
-  if (!document.querySelector('script[src*="recaptcha/api.js"]')) {
+  // Función para forzar el renderizado si el script ya existe
+  const renderRecaptcha = () => {
+    if ((window as any).grecaptcha && typeof (window as any).grecaptcha.render === 'function') {
+      try {
+        const container = document.querySelector('.g-recaptcha');
+        if (container && !container.hasChildNodes()) {
+          (window as any).grecaptcha.render(container, {
+            sitekey: siteKey,
+            callback: 'onContactRecaptchaSuccess',
+            'expired-callback': 'onContactRecaptchaExpired',
+          });
+        }
+      } catch (e) {
+        console.log("reCAPTCHA ya renderizado o esperando:", e);
+      }
+    }
+  };
+
+  // Inyectar el script de Google o renderizar directamente si ya estaba cargado
+  const existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
+  
+  if (!existingScript) {
     const script = document.createElement("script");
     script.src = "https://www.google.com/recaptcha/api.js";
     script.async = true;
     script.defer = true;
+    script.onload = () => {
+      setTimeout(renderRecaptcha, 100);
+    };
     document.head.appendChild(script);
+  } else {
+    // Si ya existe de la vista anterior, le damos un respiro al DOM de Nuxt y lo dibujamos
+    setTimeout(renderRecaptcha, 150);
   }
 });
 
+// onMounted(() => {
+//   const siteKey = config.public.recaptchaSiteKey;
+//   console.log("Site Key en onMounted (Contacto):", siteKey);
+
+//   if (!siteKey) {
+//     console.error("La clave de reCAPTCHA no está definida.");
+//     return;
+//   }
+
+//   // Callbacks únicos para el formulario de contacto
+//   (window as any).onContactRecaptchaSuccess = (token: string) => {
+//     console.log("Token de contacto capturado con éxito:", token);
+//     recaptchaToken.value = token;
+//   };
+
+//   (window as any).onContactRecaptchaExpired = () => {
+//     console.log("El token de reCAPTCHA de contacto expiró");
+//     recaptchaToken.value = null;
+//   };
+
+//   // Inyectar el script de Google si no existe
+//   if (!document.querySelector('script[src*="recaptcha/api.js"]')) {
+//     const script = document.createElement("script");
+//     script.src = "https://www.google.com/recaptcha/api.js";
+//     script.async = true;
+//     script.defer = true;
+//     document.head.appendChild(script);
+//   }
+// });
+
 const services = computed(() => generalSetting.value?.services);
 
-// const disabled = computed(() => !meta.value.valid || isSubmitting.value);
 const disabled = computed(
   () => !meta.value.valid || isSubmitting.value || !recaptchaToken.value,
 );
 </script>
 
 <template>
-  <form  class="space-y-6" @submit.prevent="onSubmit">
+  <form class="space-y-6" @submit.prevent="onSubmit">
     <!-- Fila 1: Nombre y Empresa -->
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
       <div>
@@ -159,7 +212,6 @@ const disabled = computed(
           class="w-full px-4 py-3 bg-verus-bg border border-verus-dark/10 rounded-xl text-sm text-verus-dark focus:outline-none focus:border-verus-gold focus:ring-1 focus:ring-verus-gold transition duration-200 appearance-none"
         >
           <option value="" disabled selected>Selecciona una opción</option>
-          <!-- <option value="consulta">Consulta general</option> -->
           <option
             v-for="service in services"
             :key="service.id"
@@ -167,7 +219,6 @@ const disabled = computed(
           >
             {{ service.title }}
           </option>
-         
           <option value="otro">Otro</option>
         </select>
         <span v-if="errors.service" class="custom-alert">{{
@@ -232,16 +283,14 @@ const disabled = computed(
     </div>
 
     <!-- Fila 6: Google reCAPTCHA y Botón -->
-    <!-- Fila 6: Google reCAPTCHA y Botón -->
     <div class="pt-2 grid md:grid-cols-2 gap-6 items-center">
-      <!-- Contenedor adaptado al tamaño real de reCAPTCHA (min-w-[304px]) -->
       <div class="flex justify-center md:justify-start">
+        <!-- Sin v-if para que el div renderice de inmediato al cargar la página -->
         <div
-          v-if="siteKey"
           class="g-recaptcha"
-          :data-sitekey="siteKey"
-          data-callback="onRecaptchaSuccess"
-          data-expired-callback="onRecaptchaExpired"
+          :data-sitekey="config.public.recaptchaSiteKey"
+          data-callback="onContactRecaptchaSuccess"
+          data-expired-callback="onContactRecaptchaExpired"
         ></div>
       </div>
 
@@ -257,6 +306,7 @@ const disabled = computed(
     </div>
   </form>
 </template>
+
 <style scoped>
 @reference "tailwindcss";
 .custom-alert {
