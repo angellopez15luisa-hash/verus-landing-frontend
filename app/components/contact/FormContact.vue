@@ -10,6 +10,7 @@ const config = useRuntimeConfig();
 const siteKey = ref("");
 const recaptchaToken = ref<string | null>(null);
 const nameInput = ref<HTMLInputElement | null>(null);
+const route = useRoute();
 
 const { generalSetting } = await useGeneralSettings();
 
@@ -63,6 +64,35 @@ const onSubmit = handleSubmit(async (values) => {
     toast.error(errorMessage);
   }
 });
+
+const scrollToSectionAndFocus = () => {
+  setTimeout(() => {
+    // 1. Ubicar la sección de contacto
+    const section = document.getElementById('contact') || document.getElementById('contacto')
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' })
+    }
+
+    // 2. Colocar el foco en el input sin romper el scroll
+    setTimeout(() => {
+      if (nameInput.value) {
+        nameInput.value.focus({ preventScroll: true })
+      }
+    }, 150)
+  }, 200) // Retardo para asegurar que el DOM de Nuxt terminó de hidratar
+}
+
+const handleGlobalClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement
+  const link = target.closest('a')
+  
+  if (link) {
+    const href = link.getAttribute('href') || ''
+    if (href === '#contact' || href === '#contacto') {
+      scrollToSectionAndFocus()
+    }
+  }
+}
 
 onMounted(() => {
   // Forzamos a que tome la variable pública directamente en el cliente
@@ -123,70 +153,36 @@ onMounted(() => {
     // Si ya estaba cargado de antes, solo intentamos renderizar con un timeout
     setTimeout(renderCaptcha, 200);
   }
+// Si la URL trae #contacto o #contact al presionar F5 o entrar directo
+  const isContact = route.hash === '#contact' || route.hash === '#contacto' || window.location.hash.includes('contacto')
+  
+  if (isContact) {
+    scrollToSectionAndFocus()
+  }
 
-  nameInput.value?.focus();
+  window.addEventListener('click', handleGlobalClick)
 
-  // 👉 AQUÍ LO COLOCAS: Forzamos a que el campo de archivo comience marcado como requerido/vacío
-  // if (!fileName.value) {
-  //   setFieldError("fileBooking", "* El archivo adjunto es obligatorio");
-  // }
+  
 });
 
-// onMounted(() => {
-//   const siteKey = config.public.recaptchaSiteKey;
-//   console.log("Site Key en onMounted (Contacto):", siteKey);
+onUnmounted(() => {
+  // Limpiar el listener cuando el componente se desmonte
+  window.removeEventListener('click', handleGlobalClick)
+})
 
-//   if (!siteKey) {
-//     console.error("La clave de reCAPTCHA no está definida.");
-//     return;
-//   }
+ 
 
-//   // Callbacks únicos para el formulario de contacto
-//   (window as any).onContactRecaptchaSuccess = (token: string) => {
-//     console.log("Token de contacto capturado con éxito:", token);
-//     recaptchaToken.value = token;
-//   };
+// Función para forzar el foco de forma limpia
+const focusNameInput = () => {
+  // Le damos 300ms para permitir que termine la animación del scroll y la transferencia de foco del clic
+  setTimeout(() => {
+    if (nameInput.value) {
+      nameInput.value.focus({ preventScroll: true })
+    }
+  }, 300)
+}
 
-//   (window as any).onContactRecaptchaExpired = () => {
-//     console.log("El token de reCAPTCHA de contacto expiró");
-//     recaptchaToken.value = null;
-//   };
-
-//   // Función para forzar el renderizado si el script ya existe
-//   const renderRecaptcha = () => {
-//     if ((window as any).grecaptcha && typeof (window as any).grecaptcha.render === 'function') {
-//       try {
-//         const container = document.querySelector('.g-recaptcha');
-//         if (container && !container.hasChildNodes()) {
-//           (window as any).grecaptcha.render(container, {
-//             sitekey: siteKey,
-//             callback: 'onContactRecaptchaSuccess',
-//             'expired-callback': 'onContactRecaptchaExpired',
-//           });
-//         }
-//       } catch (e) {
-//         console.log("reCAPTCHA ya renderizado o esperando:", e);
-//       }
-//     }
-//   };
-
-//   // Inyectar el script de Google o renderizar directamente si ya estaba cargado
-//   const existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
-
-//   if (!existingScript) {
-//     const script = document.createElement("script");
-//     script.src = "https://www.google.com/recaptcha/api.js";
-//     script.async = true;
-//     script.defer = true;
-//     script.onload = () => {
-//       setTimeout(renderRecaptcha, 100);
-//     };
-//     document.head.appendChild(script);
-//   } else {
-//     // Si ya existe de la vista anterior, le damos un respiro al DOM de Nuxt y lo dibujamos
-//     setTimeout(renderRecaptcha, 150);
-//   }
-// });
+ 
 
 const services = computed(() => generalSetting.value?.services);
 

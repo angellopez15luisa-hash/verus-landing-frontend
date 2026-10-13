@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 
 const router = useRouter();
 const route = useRoute();
+const activeSection = ref("inicio"); // Estado inicial
 
 const { generalSetting, pending, error, getSocialUrl } =
   await useGeneralSettings();
@@ -18,40 +19,92 @@ const closeMenu = () => {
   isMobileMenuOpen.value = false;
 };
 
+// Función para actualizar la sección activa desde la URL
+const updateActiveSection = () => {
+  const hash =
+    route.hash.replace("#", "") || window.location.hash.replace("#", "");
+  if (hash) {
+    activeSection.value = hash;
+  } else {
+    activeSection.value = "inicio";
+  }
+};
+
+// --- NUEVO: Scrollspy basado en la posición exacta del scroll ---
+const sectionMapping: Record<string, string> = {
+  'start': 'inicio',
+  'how-it-works': 'como-funciona',
+  'services': 'servicios',
+  'testimony': 'testimonios',
+  'contact': 'contacto'
+};
+
+const handleScrollSpy = () => {
+  // Tomamos una referencia en el tercio superior de la pantalla
+  const scrollPosition = window.scrollY + window.innerHeight / 3;
+
+  for (const [id, slug] of Object.entries(sectionMapping)) {
+    const el = document.getElementById(id);
+    if (el) {
+      const top = el.offsetTop;
+      const height = el.offsetHeight;
+      if (scrollPosition >= top && scrollPosition < top + height) {
+        if (activeSection.value !== slug) {
+          activeSection.value = slug;
+          window.history.replaceState(history.state, "", `#${slug}`);
+        }
+        break;
+      }
+    }
+  }
+};
+// -------------------------------------------------------------
+
 onMounted(() => {
   const elements = document.querySelectorAll(".card-animate, .fade-in-up");
-  if (elements.length === 0) return;
+  if (elements.length > 0) {
+    observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+          } else {
+            entry.target.classList.remove("is-visible");
+          }
+        });
+      },
+      {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
+      },
+    );
 
-  observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-        } else {
-          entry.target.classList.remove("is-visible");
-        }
-      });
-    },
-    {
-      threshold: 0.1,
-      rootMargin: "0px 0px -50px 0px",
-    },
-  );
+    elements.forEach((el) => observer?.observe(el));
+  }
 
-  elements.forEach((el) => observer?.observe(el));
+  // Escuchamos el scroll de forma optimizada
+  window.addEventListener("scroll", handleScrollSpy, { passive: true });
+  syncActiveFromUrl();
 });
 
 onUnmounted(() => {
   if (observer) {
     observer.disconnect();
   }
+  window.removeEventListener("scroll", handleScrollSpy);
 });
 
+watch(
+  () => route.hash,
+  () => {
+    syncActiveFromUrl();
+  },
+);
+
 const scrollToSection = async (targetId: string, spanishSlug: string) => {
-  // Cerramos el menú mobile por si estaba abierto
+  activeSection.value = spanishSlug;
   closeMenu();
 
-  // 1. Si estamos en una página interna (ej. /servicios/auditoria-de-proveedores)
   if (route.path !== "/") {
     await router.push("/");
 
@@ -59,38 +112,39 @@ const scrollToSection = async (targetId: string, spanishSlug: string) => {
       const element = document.getElementById(targetId);
       if (element) {
         element.scrollIntoView({ behavior: "smooth" });
-        // CORREGIDO AQUÍ: Pasamos history.state en lugar de null
         window.history.replaceState(history.state, "", `#${spanishSlug}`);
       }
     }, 100);
     return;
   }
 
-  // 2. Si ya estamos en el home, buscamos el elemento con el ID en inglés
   const element = document.getElementById(targetId);
 
   if (element) {
     element.scrollIntoView({ behavior: "smooth" });
-    // Y CORREGIDO AQUÍ TAMBIÉN: Pasamos history.state en lugar de null
     window.history.replaceState(history.state, "", `#${spanishSlug}`);
   }
 };
- 
+
+const syncActiveFromUrl = () => {
+  const hash = window.location.hash.replace("#", "");
+  if (hash) {
+    activeSection.value = hash;
+  } else if (route.path === "/") {
+    activeSection.value = "inicio";
+  }
+};
 
 const goToHome = async () => {
-  // Cerramos el menú móvil por si acaso estaba abierto
+  activeSection.value = 'inicio';
   closeMenu();
-  
-  // Limpiamos cualquier hash o ancla que haya quedado en la URL
+
   if (window.location.hash) {
-    window.history.replaceState(history.state, '', window.location.pathname);
+    window.history.replaceState(history.state, "", window.location.pathname);
   }
 
-  // Forzamos la navegación limpia a la raíz absoluta usando replace para resetear la vista
-  await router.replace('/');
-  
-  // Subimos el scroll arriba del todo de forma suave
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  await router.replace("/");
+  window.scrollTo({ top: 0, behavior: "smooth" });
 };
 </script>
 
@@ -124,32 +178,77 @@ const goToHome = async () => {
           href="#start"
           @click.prevent="scrollToSection('start', 'inicio')"
           class="hover:text-vblue-600 transition-colors"
-          >Inicio</a
-        >
+          :class="
+            activeSection === 'inicio'
+              ? 'text-vblue-600 font-semibold'
+              : 'hover:text-vblue-600'
+          "
+          >Inicio
+          <span
+            v-if="activeSection === 'inicio'"
+            class="absolute bottom-0 left-0 w-full h-0.5 bg-vblue-600 rounded-full"
+          ></span
+        ></a>
         <a
           href="#how-it-works"
           @click.prevent="scrollToSection('how-it-works', 'como-funciona')"
           class="hover:text-vblue-600 transition-colors"
-          >¿Cómo funciona?</a
-        >
+          :class="
+            activeSection === 'como-funciona'
+              ? 'text-vblue-600 font-semibold'
+              : 'hover:text-vblue-600'
+          "
+          >¿Cómo funciona?
+          <span
+            v-if="activeSection === 'como-funciona'"
+            class="absolute bottom-0 left-0 w-full h-0.5 bg-vblue-600 rounded-full"
+          ></span
+        ></a>
         <a
           href="#services"
           @click.prevent="scrollToSection('services', 'servicios')"
           class="hover:text-vblue-600 transition-colors"
-          >Servicios</a
-        >
+          :class="
+            activeSection === 'servicios'
+              ? 'text-vblue-600 font-semibold'
+              : 'hover:text-vblue-600'
+          "
+          >Servicios
+          <span
+            v-if="activeSection === 'servicios'"
+            class="absolute bottom-0 left-0 w-full h-0.5 bg-vblue-600 rounded-full"
+          ></span
+        ></a>
         <a
           href="#testimony"
           @click.prevent="scrollToSection('testimony', 'testimonios')"
           class="hover:text-vblue-600 transition-colors"
-          >Testimonios</a
-        >
+          :class="
+            activeSection === 'testimonios'
+              ? 'text-vblue-600 font-semibold'
+              : 'hover:text-vblue-600'
+          "
+          >Testimonios
+          <span
+            v-if="activeSection === 'testimonios'"
+            class="absolute bottom-0 left-0 w-full h-0.5 bg-vblue-600 rounded-full"
+          ></span
+        ></a>
         <a
           href="#contact"
           @click.prevent="scrollToSection('contact', 'contacto')"
           class="hover:text-vblue-600 transition-colors"
-          >Contacto</a
-        >
+          :class="
+            activeSection === 'contacto'
+              ? 'text-vblue-600 font-semibold'
+              : 'hover:text-vblue-600'
+          "
+          >Contacto
+          <span
+            v-if="activeSection === 'contacto'"
+            class="absolute bottom-0 left-0 w-full h-0.5 bg-vblue-600 rounded-full"
+          ></span
+        ></a>
       </nav>
 
       <!-- Right side: Language, Social & Mobile Button -->

@@ -46,7 +46,7 @@ onUnmounted(() => {
         v-if="generalSetting?.banners"
         :src="generalSetting.banners[0]?.image"
         alt="Supplier warehouse and logistics quality inspection background"
-        class="w-full h-full object-cover object-center"
+        class="w-full h-full object-cover object-center animate-slow-zoom"
         fetchpriority="high"
         loading="eager"
       />
