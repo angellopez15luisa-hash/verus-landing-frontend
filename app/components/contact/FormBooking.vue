@@ -9,6 +9,7 @@ const config = useRuntimeConfig();
 const siteKey = ref("");
 const recaptchaToken = ref<string | null>(null);
 const fileName = ref<string | null>(null);
+const nameInput = ref<HTMLInputElement | null>(null);
 
 const countries = [
   { value: "pe", label: "Perú" },
@@ -66,7 +67,7 @@ const onSubmit = handleSubmit(async (values) => {
 
     if (values.fileBooking instanceof File) {
       fileNameStr = values.fileBooking.name;
-      
+
       fileBase64 = await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(values.fileBooking as File);
@@ -87,7 +88,7 @@ const onSubmit = handleSubmit(async (values) => {
       {
         method: "POST",
         body: payload,
-      }
+      },
     );
 
     // 1. Resetear formulario y valores de VeeValidate
@@ -96,7 +97,9 @@ const onSubmit = handleSubmit(async (values) => {
     fileName.value = null; // Limpia el texto visual del nombre del archivo en el input personalizado
 
     // 2. Limpiar físicamente el valor del input file del DOM
-    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const fileInput = document.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
     if (fileInput) {
       fileInput.value = "";
     }
@@ -110,7 +113,8 @@ const onSubmit = handleSubmit(async (values) => {
     toast.success(response.message);
   } catch (error: any) {
     console.error("Error al enviar formulario:", error);
-    const errorMessage = error?.data?.message || "Ocurrió un error al enviar el correo.";
+    const errorMessage =
+      error?.data?.message || "Ocurrió un error al enviar el correo.";
     toast.error(errorMessage);
   }
 });
@@ -179,8 +183,10 @@ onMounted(() => {
   if (!fileName.value) {
     setFieldError("fileBooking", "* El archivo adjunto es obligatorio");
   }
+
+  nameInput.value?.focus();
 });
- 
+
 const handleFileUpload = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
@@ -218,6 +224,7 @@ const disabled = computed(
             >Nombre completo <span class="text-red-500">*</span></label
           >
           <input
+            ref="nameInput"
             type="text"
             v-model="name"
             class="w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
@@ -377,7 +384,8 @@ const disabled = computed(
           <label
             for="categoria_producto"
             class="block text-sm font-medium text-slate-700 mb-1"
-            >Tipo de producto (Categoría) <span class="text-red-500">*</span></label
+            >Tipo de producto (Categoría)
+            <span class="text-red-500">*</span></label
           >
           <select
             v-model="service"
@@ -403,7 +411,8 @@ const disabled = computed(
           <label
             for="fecha_servicio"
             class="block text-sm font-medium text-slate-700 mb-1"
-            >Fecha estimada del servicio <span class="text-red-500">*</span></label
+            >Fecha estimada del servicio
+            <span class="text-red-500">*</span></label
           >
           <input
             type="date"
@@ -459,33 +468,37 @@ const disabled = computed(
         </div>
 
         <!-- Carga de archivo -->
-      <!-- Carga de archivo -->
-<div>
-  <label class="block text-sm font-medium text-slate-700 mb-2">
-    Adjuntar documento <span class="text-red-500">*</span>
-  </label>
-  
-  <input
-    type="file"
-    @change="handleFileUpload"
-    name="fileBooking"
-    accept=".pdf, .jpg, .jpeg, .zip"
-    class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
-  />
+        <!-- Carga de archivo -->
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-2">
+            Adjuntar documento <span class="text-red-500">*</span>
+          </label>
 
-  <!-- Texto aclaratorio -->
-  <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
-    Formatos permitidos: <strong>PDF, JPG, JPEG o ZIP</strong> (máx. 10 MB).<br />
-    <span class="text-slate-400">* Si adjuntas un ZIP, debe contener únicamente archivos PDF o imágenes permitidas.</span>
-  </p>
+          <input
+            type="file"
+            @change="handleFileUpload"
+            name="fileBooking"
+            accept=".pdf, .jpg, .jpeg, .zip"
+            class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+          />
 
-  <span
-    v-if="errors.fileBooking"
-    class="text-xs text-red-500 mt-1 block"
-  >
-    {{ errors.fileBooking }}
-  </span>
-</div>
+          <!-- Texto aclaratorio -->
+          <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+            Formatos permitidos: <strong>PDF, JPG, JPEG o ZIP</strong> (máx. 10
+            MB).<br />
+            <span class="text-slate-400"
+              >* Si adjuntas un ZIP, debe contener únicamente archivos PDF o
+              imágenes permitidas.</span
+            >
+          </p>
+
+          <span
+            v-if="errors.fileBooking"
+            class="text-xs text-red-500 mt-1 block"
+          >
+            {{ errors.fileBooking }}
+          </span>
+        </div>
         <!-- Medio de contacto preferido -->
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-2">

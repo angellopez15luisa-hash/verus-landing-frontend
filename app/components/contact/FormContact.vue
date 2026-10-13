@@ -9,6 +9,7 @@ import "vue3-toastify/dist/index.css";
 const config = useRuntimeConfig();
 const siteKey = ref("");
 const recaptchaToken = ref<string | null>(null);
+const nameInput = ref<HTMLInputElement | null>(null);
 
 const { generalSetting } = await useGeneralSettings();
 
@@ -123,6 +124,8 @@ onMounted(() => {
     setTimeout(renderCaptcha, 200);
   }
 
+  nameInput.value?.focus();
+
   // 👉 AQUÍ LO COLOCAS: Forzamos a que el campo de archivo comience marcado como requerido/vacío
   // if (!fileName.value) {
   //   setFieldError("fileBooking", "* El archivo adjunto es obligatorio");
@@ -203,6 +206,7 @@ const disabled = computed(
           >Nombre completo <span class="text-red-500">*</span></label
         >
         <input
+          ref="nameInput"
           type="text"
           v-model="name"
           class="w-full px-4 py-3 bg-verus-bg border border-verus-dark/10 rounded-xl text-sm text-verus-dark placeholder-verus-primary/50 focus:outline-none focus:border-verus-gold focus:ring-1 focus:ring-verus-gold transition duration-200"
@@ -337,7 +341,7 @@ const disabled = computed(
             class="text-verus-red hover:text-verus-gold underline transition-colors duration-200"
             >política de privacidad</a
           >
-           <span class="text-red-500"> *</span>
+          <span class="text-red-500"> *</span>
         </label>
       </div>
     </div>
