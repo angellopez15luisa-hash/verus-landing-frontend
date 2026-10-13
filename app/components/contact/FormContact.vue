@@ -7,6 +7,7 @@ import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 
 const config = useRuntimeConfig();
+const siteKey = ref("");
 const recaptchaToken = ref<string | null>(null);
 
 const { generalSetting } = await useGeneralSettings();
@@ -45,69 +46,87 @@ const onSubmit = handleSubmit(async (values) => {
 
     resetForm();
     recaptchaToken.value = null;
+
+    // 3. Reiniciar el reCAPTCHA visualmente en la interfaz
+    const win = window as any;
+    if (win.grecaptcha && typeof win.grecaptcha.reset === "function") {
+      win.grecaptcha.reset();
+    }
+
     toast.success(response.message);
   } catch (error: any) {
     console.error("Error al enviar formulario:", error);
     // Muestra el mensaje exacto que responde el backend en lugar de caerse silenciosamente
-    const errorMessage = error?.data?.message || "Ocurrió un error al enviar el correo.";
+    const errorMessage =
+      error?.data?.message || "Ocurrió un error al enviar el correo.";
     toast.error(errorMessage);
   }
 });
 
 onMounted(() => {
-  const siteKey = config.public.recaptchaSiteKey;
-  console.log("Site Key en onMounted (Contacto):", siteKey);
+  // Forzamos a que tome la variable pública directamente en el cliente
+  siteKey.value = config.public.recaptchaSiteKey;
+  console.log("Site Key en onMounted:", siteKey.value);
 
-  if (!siteKey) {
+  if (!siteKey.value) {
     console.error("La clave de reCAPTCHA no está definida.");
     return;
   }
 
-  // Callbacks únicos para el formulario de contacto
-  (window as any).onContactRecaptchaSuccess = (token: string) => {
-    console.log("Token de contacto capturado con éxito:", token);
+  // Definimos las funciones globales que pide Google
+  (window as any).onRecaptchaSuccess = (token: string) => {
+    console.log("Token capturado con éxito:", token);
     recaptchaToken.value = token;
   };
 
-  (window as any).onContactRecaptchaExpired = () => {
-    console.log("El token de reCAPTCHA de contacto expiró");
+  (window as any).onRecaptchaExpired = () => {
+    console.log("El token de reCAPTCHA expiró");
     recaptchaToken.value = null;
   };
 
-  // Función para forzar el renderizado si el script ya existe
-  const renderRecaptcha = () => {
-    if ((window as any).grecaptcha && typeof (window as any).grecaptcha.render === 'function') {
+  // Función para renderizar de forma segura
+  const renderCaptcha = () => {
+    const win = window as any;
+    if (win.grecaptcha && typeof win.grecaptcha.render === "function") {
       try {
-        const container = document.querySelector('.g-recaptcha');
+        const container = document.getElementById(
+          "recaptcha-booking-container",
+        );
         if (container && !container.hasChildNodes()) {
-          (window as any).grecaptcha.render(container, {
-            sitekey: siteKey,
-            callback: 'onContactRecaptchaSuccess',
-            'expired-callback': 'onContactRecaptchaExpired',
+          win.grecaptcha.render(container, {
+            sitekey: siteKey.value,
+            callback: "onRecaptchaSuccess",
+            "expired-callback": "onRecaptchaExpired",
           });
         }
       } catch (e) {
-        console.log("reCAPTCHA ya renderizado o esperando:", e);
+        console.log("Error al renderizar reCAPTCHA:", e);
       }
     }
   };
 
-  // Inyectar el script de Google o renderizar directamente si ya estaba cargado
-  const existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
-  
-  if (!existingScript) {
-    const script = document.createElement("script");
-    script.src = "https://www.google.com/recaptcha/api.js";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      setTimeout(renderRecaptcha, 100);
+  // Verificamos si el script ya existe en el DOM
+  let scriptTag = document.querySelector('script[src*="recaptcha/api.js"]');
+
+  if (!scriptTag) {
+    const newScript = document.createElement("script") as HTMLScriptElement;
+    newScript.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+    newScript.async = true;
+    newScript.defer = true;
+    newScript.onload = () => {
+      // Damos un pequeño respiro para que grecaptcha esté 100% disponible
+      setTimeout(renderCaptcha, 150);
     };
-    document.head.appendChild(script);
+    document.head.appendChild(newScript);
   } else {
-    // Si ya existe de la vista anterior, le damos un respiro al DOM de Nuxt y lo dibujamos
-    setTimeout(renderRecaptcha, 150);
+    // Si ya estaba cargado de antes, solo intentamos renderizar con un timeout
+    setTimeout(renderCaptcha, 200);
   }
+
+  // 👉 AQUÍ LO COLOCAS: Forzamos a que el campo de archivo comience marcado como requerido/vacío
+  // if (!fileName.value) {
+  //   setFieldError("fileBooking", "* El archivo adjunto es obligatorio");
+  // }
 });
 
 // onMounted(() => {
@@ -130,13 +149,39 @@ onMounted(() => {
 //     recaptchaToken.value = null;
 //   };
 
-//   // Inyectar el script de Google si no existe
-//   if (!document.querySelector('script[src*="recaptcha/api.js"]')) {
+//   // Función para forzar el renderizado si el script ya existe
+//   const renderRecaptcha = () => {
+//     if ((window as any).grecaptcha && typeof (window as any).grecaptcha.render === 'function') {
+//       try {
+//         const container = document.querySelector('.g-recaptcha');
+//         if (container && !container.hasChildNodes()) {
+//           (window as any).grecaptcha.render(container, {
+//             sitekey: siteKey,
+//             callback: 'onContactRecaptchaSuccess',
+//             'expired-callback': 'onContactRecaptchaExpired',
+//           });
+//         }
+//       } catch (e) {
+//         console.log("reCAPTCHA ya renderizado o esperando:", e);
+//       }
+//     }
+//   };
+
+//   // Inyectar el script de Google o renderizar directamente si ya estaba cargado
+//   const existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
+
+//   if (!existingScript) {
 //     const script = document.createElement("script");
 //     script.src = "https://www.google.com/recaptcha/api.js";
 //     script.async = true;
 //     script.defer = true;
+//     script.onload = () => {
+//       setTimeout(renderRecaptcha, 100);
+//     };
 //     document.head.appendChild(script);
+//   } else {
+//     // Si ya existe de la vista anterior, le damos un respiro al DOM de Nuxt y lo dibujamos
+//     setTimeout(renderRecaptcha, 150);
 //   }
 // });
 
@@ -300,12 +345,14 @@ const disabled = computed(
     <div class="pt-2 grid md:grid-cols-2 gap-6 items-center">
       <div class="flex justify-center md:justify-start">
         <!-- Sin v-if para que el div renderice de inmediato al cargar la página -->
-        <div
+        <!-- <div
           class="g-recaptcha"
           :data-sitekey="config.public.recaptchaSiteKey"
           data-callback="onContactRecaptchaSuccess"
           data-expired-callback="onContactRecaptchaExpired"
-        ></div>
+        ></div> -->
+
+        <div v-if="siteKey" id="recaptcha-booking-container"></div>
       </div>
 
       <div class="flex items-center">
