@@ -200,7 +200,7 @@ const disabled = computed(
         <label
           for="nombre"
           class="block text-sm font-medium text-verus-dark mb-2"
-          >Nombre completo *</label
+          >Nombre completo <span class="text-red-500">*</span></label
         >
         <input
           type="text"
@@ -214,7 +214,7 @@ const disabled = computed(
         <label
           for="empresa"
           class="block text-sm font-medium text-verus-dark mb-2"
-          >Empresa</label
+          >Empresa <span class="text-red-500">*</span></label
         >
         <input
           type="text"
@@ -234,7 +234,7 @@ const disabled = computed(
         <label
           for="email"
           class="block text-sm font-medium text-verus-dark mb-2"
-          >Correo electrónico *</label
+          >Correo electrónico <span class="text-red-500">*</span></label
         >
         <input
           type="email"
@@ -248,7 +248,7 @@ const disabled = computed(
         <label
           for="telefono"
           class="block text-sm font-medium text-verus-dark mb-2"
-          >Teléfono *</label
+          >Teléfono <span class="text-red-500">*</span></label
         >
         <input
           type="text"
@@ -263,7 +263,7 @@ const disabled = computed(
     <!-- Fila 3: Asunto -->
     <div>
       <label for="asunto" class="block text-sm font-medium text-verus-dark mb-2"
-        >Asunto *</label
+        >Asunto <span class="text-red-500">*</span></label
       >
       <div class="relative">
         <select
@@ -304,10 +304,11 @@ const disabled = computed(
       <label
         for="mensaje"
         class="block text-sm font-medium text-verus-dark mb-2"
-        >Mensaje *</label
+        >Mensaje <span class="text-red-500">*</span></label
       >
       <textarea
         id="mensaje"
+        rows="3"
         v-model="message"
         class="w-full px-4 py-3 bg-verus-bg border border-verus-dark/10 rounded-xl text-sm text-verus-dark placeholder-verus-primary/50 focus:outline-none focus:border-verus-gold focus:ring-1 focus:ring-verus-gold transition duration-200 resize-none"
         placeholder="Cuéntanos más sobre tu proyecto..."
@@ -336,7 +337,7 @@ const disabled = computed(
             class="text-verus-red hover:text-verus-gold underline transition-colors duration-200"
             >política de privacidad</a
           >
-          *
+           <span class="text-red-500"> *</span>
         </label>
       </div>
     </div>

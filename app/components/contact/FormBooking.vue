@@ -180,73 +180,7 @@ onMounted(() => {
     setFieldError("fileBooking", "* El archivo adjunto es obligatorio");
   }
 });
-
-// onMounted(() => {
-//   // Forzamos a que tome la variable pública directamente en el cliente
-//   siteKey.value = config.public.recaptchaSiteKey;
-//   console.log("Site Key en onMounted:", siteKey.value);
-
-//   if (!siteKey.value) {
-//     console.error("La clave de reCAPTCHA no está definida.");
-//     return;
-//   }
-
-//   (window as any).onRecaptchaSuccess = (token: string) => {
-//     console.log("Token capturado con éxito:", token);
-//     recaptchaToken.value = token;
-//   };
-
-//   (window as any).onRecaptchaExpired = () => {
-//     console.log("El token de reCAPTCHA expiró");
-//     recaptchaToken.value = null;
-//   };
-
-//   // Función para renderizar el captcha de forma segura si ya está cargado
-//   const renderCaptcha = () => {
-//     if (
-//       (window as any).grecaptcha &&
-//       typeof (window as any).grecaptcha.render === "function"
-//     ) {
-//       try {
-//         // Busca todos los divs con la clase g-recaptcha que no se hayan renderizado
-//         const containers = document.querySelectorAll(".g-recaptcha");
-//         containers.forEach((container) => {
-//           if (!container.hasChildNodes()) {
-//             (window as any).grecaptcha.render(container, {
-//               sitekey: siteKey.value,
-//               callback: "onRecaptchaSuccess",
-//               "expired-callback": "onRecaptchaExpired",
-//             });
-//           }
-//         });
-//       } catch (e) {
-//         console.log("Error al renderizar reCAPTCHA:", e);
-//       }
-//     }
-//   };
-
-//   // Inyectar el script de Google si no existe
-//   const existingScript = document.querySelector(
-//     'script[src*="recaptcha/api.js"]',
-//   );
-//   if (!existingScript) {
-//     const script = document.createElement("script");
-//     script.src = "https://www.google.com/recaptcha/api.js?render=explicit"; // Añadimos ?render=explicit para control total
-//     script.async = true;
-//     script.defer = true;
-//     script.onload = () => {
-//       renderCaptcha();
-//     };
-//     document.head.appendChild(script);
-//   } else {
-//     // Si el script ya estaba cargado en otra vista, intentamos renderizarlo inmediatamente con un pequeño respiro del DOM
-//     setTimeout(renderCaptcha, 200);
-//   }
-// });
-
-// Actualiza tu función de carga de archivos existente
-// Asegúrate de extraer setFieldValue de tu useForm (ej: const { setFieldValue, errors, meta } = useForm(...))
-
+ 
 const handleFileUpload = (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
@@ -313,7 +247,7 @@ const disabled = computed(
           <label
             for="razon_social"
             class="block text-sm font-medium text-slate-700 mb-1"
-            >Razón social</label
+            >Razón social <span class="text-red-500">*</span></label
           >
           <input
             type="text"
@@ -328,7 +262,7 @@ const disabled = computed(
         <!-- RUC -->
         <div>
           <label for="ruc" class="block text-sm font-medium text-slate-700 mb-1"
-            >RUC</label
+            >RUC <span class="text-red-500">*</span></label
           >
           <input
             type="text"
@@ -343,7 +277,7 @@ const disabled = computed(
           <label
             for="id_tributario"
             class="block text-sm font-medium text-slate-700 mb-1"
-            >ID tributario</label
+            >ID tributario <span class="text-red-500">*</span></label
           >
           <input
             type="text"
@@ -402,7 +336,7 @@ const disabled = computed(
           <label
             for="pais_proveedor"
             class="block text-sm font-medium text-slate-700 mb-1"
-            >País del proveedor</label
+            >País del proveedor <span class="text-red-500">*</span></label
           >
           <select
             v-model="country"
@@ -427,7 +361,7 @@ const disabled = computed(
           <label
             for="destino"
             class="block text-sm font-medium text-slate-700 mb-1"
-            >País/ciudad de destino</label
+            >País/ciudad de destino <span class="text-red-500">*</span></label
           >
           <input
             type="text"
@@ -443,7 +377,7 @@ const disabled = computed(
           <label
             for="categoria_producto"
             class="block text-sm font-medium text-slate-700 mb-1"
-            >Tipo de producto (Categoría)</label
+            >Tipo de producto (Categoría) <span class="text-red-500">*</span></label
           >
           <select
             v-model="service"
@@ -469,7 +403,7 @@ const disabled = computed(
           <label
             for="fecha_servicio"
             class="block text-sm font-medium text-slate-700 mb-1"
-            >Fecha estimada del servicio</label
+            >Fecha estimada del servicio <span class="text-red-500">*</span></label
           >
           <input
             type="date"
@@ -485,7 +419,7 @@ const disabled = computed(
           <label
             for="cantidad"
             class="block text-sm font-medium text-slate-700 mb-1"
-            >Cantidad</label
+            >Cantidad <span class="text-red-500">*</span></label
           >
           <input
             type="number"
@@ -511,7 +445,7 @@ const disabled = computed(
           <label
             for="detalles"
             class="block text-sm font-medium text-slate-700 mb-1"
-            >Detalles adicionales</label
+            >Detalles adicionales <span class="text-red-500">*</span></label
           >
           <textarea
             v-model="details"
@@ -555,7 +489,7 @@ const disabled = computed(
         <!-- Medio de contacto preferido -->
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-2">
-            Medio de contacto preferido
+            Medio de contacto preferido <span class="text-red-500">*</span>
           </label>
           <div class="flex flex-wrap gap-6">
             <label class="flex items-center cursor-pointer">
