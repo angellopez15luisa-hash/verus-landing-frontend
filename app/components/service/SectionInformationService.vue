@@ -1,15 +1,96 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, nextTick } from "vue";
 import type { Service } from "~/types";
- 
 
 const props = defineProps<{
   service?: Service;
 }>();
 
+const config = useRuntimeConfig();
 let observer: IntersectionObserver | null = null;
 
+// Cargar el script SDK de PayPal dinámicamente
+const loadPayPalScript = (clientId: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if ((window as any).paypal) {
+      resolve();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=USD`;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = (err) => reject(err);
+    document.head.appendChild(script);
+  });
+};
+
+const renderPayPalButton = async () => {
+  await nextTick(); // Asegura que el DOM terminó de renderizarse
+  
+  const paypal = (window as any).paypal;
+  const container = document.getElementById("paypal-button-container");
+
+  if (!container) {
+    console.error("❌ No se encontró el contenedor #paypal-button-container en el DOM");
+    return;
+  }
+
+  if (!paypal) {
+    console.error("❌ El SDK de PayPal no se cargó correctamente en window.paypal");
+    return;
+  }
+
+  try {
+    container.innerHTML = ""; // Limpiar contenedor por seguridad
+
+    paypal.Buttons({
+      style: {
+        layout: "vertical",
+        color: "gold",
+        shape: "pill",
+        label: "pay",
+      },
+
+      createOrder: (data: any, actions: any) => {
+        return actions.order.create({
+          purchase_units: [
+            {
+              description: props.service?.title || "Reserva de Asesoría - ChinaVerus",
+              amount: {
+                currency_code: "USD",
+                value: "299.00",
+              },
+            },
+          ],
+        });
+      },
+
+      onApprove: async (data: any, actions: any) => {
+        try {
+          const details = await actions.order.capture();
+          console.log("Pago completado por:", details.payer.name.given_name);
+          alert(`¡Pago realizado con éxito por ${details.payer.name.given_name}!`);
+        } catch (err) {
+          console.error("Error al capturar el pago:", err);
+          alert("Hubo un problema al procesar el pago con PayPal.");
+        }
+      },
+
+      onError: (err: any) => {
+        console.error("Error en PayPal SDK Buttons:", err);
+        alert("Ocurrió un error con la pasarela de pagos de PayPal.");
+      },
+    }).render("#paypal-button-container");
+    
+    console.log("✅ Botón de PayPal renderizado con éxito");
+  } catch (error) {
+    console.error("❌ Error al renderizar el botón de PayPal:", error);
+  }
+};
+
 onMounted(() => {
+  // 1. Animaciones IntersectionObserver
   setTimeout(() => {
     const elements = document.querySelectorAll(".card-animate, .fade-in-up");
     if (elements.length === 0) return;
@@ -20,19 +101,33 @@ onMounted(() => {
           if (entry.isIntersecting) {
             entry.target.classList.add("is-visible");
           } else {
-            // Esto remueve la clase al salir de la pantalla, permitiendo que se repita al volver a entrar
             entry.target.classList.remove("is-visible");
           }
         });
       },
       {
-        threshold: 0.05, // Se activa apenas asoma un 5% del elemento
-        rootMargin: "0px 0px 0px 0px", // Sin márgenes restrictivos para que reaccione rápido al subir/bajar
+        threshold: 0.05,
+        rootMargin: "0px 0px 0px 0px",
       },
     );
 
     elements.forEach((el) => observer?.observe(el));
   }, 50);
+
+  // 2. Inicializar PayPal
+  const clientId = config.public.paypalClientId as string;
+  if (!clientId) {
+    console.error("❌ No se encontró el Client ID de PayPal en el archivo .env");
+    return;
+  }
+
+  loadPayPalScript(clientId)
+    .then(() => {
+      renderPayPalButton();
+    })
+    .catch((error) => {
+      console.error("❌ Error al cargar el script SDK de PayPal:", error);
+    });
 });
 
 onUnmounted(() => {
@@ -77,16 +172,6 @@ onUnmounted(() => {
       class="bg-white p-6 rounded-2xl shadow-xl border border-slate-100 space-y-6 lg:sticky lg:top-8 fade-in-up"
       style="transition-delay: 300ms"
     >
-      <!-- <div>
-        <span class="text-sm text-verus-primary font-medium"
-          >Inversión del servicio</span
-        >
-        <div class="flex items-baseline space-x-1 mt-1">
-          <span class="text-3xl font-extrabold text-verus-gold">$299</span>
-          <span class="text-verus-gold text-sm">USD</span>
-        </div>
-      </div> -->
-
       <hr class="border-slate-100" />
 
       <!-- Botones de Acción -->
@@ -99,18 +184,10 @@ onUnmounted(() => {
           Reservar Asesoría
         </NuxtLink>
 
-        <!-- Botón PayPal -->
-        <button
-          type="button"
-          class="w-full inline-flex justify-center items-center px-6 py-3.5 bg-[#FFC439] hover:bg-[#f2b830] text-[#003087] font-bold rounded-xl transition-all duration-200 shadow-sm"
-        >
-          <svg class="w-5 h-5 mr-2 fill-current" viewBox="0 0 24 24">
-            <path
-              d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.762.762 0 0 1 .752-.642h6.582c2.25 0 4.02.502 5.097 1.442 1.018.89 1.437 2.185 1.25 3.85-.028.258-.073.52-.134.786-.68 2.97-2.738 4.793-5.835 4.793H9.76a.762.762 0 0 0-.752.643l-1.932 9.745z"
-            />
-          </svg>
-          Pagar con PayPal
-        </button>
+        <!-- Botón PayPal Oficial -->
+        <div class="w-full mt-4">
+          <div id="paypal-button-container" class="w-full min-h-[45px]"></div>
+        </div>
       </div>
 
       <p class="text-xs text-center text-slate-400">
