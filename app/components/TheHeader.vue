@@ -40,7 +40,12 @@ const sectionMapping: Record<string, string> = {
 };
 
 const handleScrollSpy = () => {
-  // Tomamos una referencia en el tercio superior de la pantalla
+  // Si no estamos en la página principal, no marcamos ninguna sección
+  if (route.path !== '/') {
+    activeSection.value = '';
+    return;
+  }
+
   const scrollPosition = window.scrollY + window.innerHeight / 3;
 
   for (const [id, slug] of Object.entries(sectionMapping)) {

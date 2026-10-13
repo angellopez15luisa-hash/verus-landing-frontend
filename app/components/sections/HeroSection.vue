@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from "vue";
+ 
 
 const { generalSetting, pending, error } = await useGeneralSettings();
 
@@ -93,15 +94,15 @@ onUnmounted(() => {
           class="fade-in-up flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4 pt-4 w-full sm:w-auto"
           style="transition-delay: 300ms"
         >
-          <a
-            href="#contact"
+          <NuxtLink
+            to="/formulario-reserva"
             class="w-full sm:w-auto bg-verus-red hover:bg-verus-gold text-white font-extralight text-base px-8 py-4 rounded-xl shadow-xl bg-[#0E3A5C] transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center space-x-3 group"
           >
             <span>{{ generalSetting?.textButtonLeftStart }}</span>
             <i
               class="fa-solid fa-arrow-right transition-transform duration-300 group-hover:translate-x-1"
             ></i>
-          </a>
+          </NuxtLink>
           <a
             href="#services"
             class="w-full sm:w-auto bg-white/15 hover:bg-white/25 text-white font-extralight text-base px-8 py-4 rounded-xl border border-white/30 backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center space-x-2 shadow-md"
