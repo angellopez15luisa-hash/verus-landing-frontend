@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod";
 import { useForm } from "vee-validate";
+import { toast } from "vue3-toastify";
 import { bookingSchema } from "~/schemas";
 import { bookingFormValue } from "~/values";
 
@@ -22,11 +23,19 @@ const countries = [
 
 const { generalSetting } = await useGeneralSettings();
 
-const { handleSubmit, resetForm, defineField, errors, isSubmitting, meta,setFieldValue } =
-  useForm({
-    validationSchema: toTypedSchema(bookingSchema),
-    initialValues: bookingFormValue,
-  });
+const {
+  handleSubmit,
+  resetForm,
+  defineField,
+  errors,
+  isSubmitting,
+  meta,
+  setFieldValue,
+  setFieldError, // <-- Agrégalo aquí
+} = useForm({
+  validationSchema: toTypedSchema(bookingSchema),
+  initialValues: bookingFormValue,
+});
 
 const [name] = defineField("name");
 const [company] = defineField("company");
@@ -45,6 +54,67 @@ const [fileBooking] = defineField("fileBooking");
 const [methodContact] = defineField("methodContact");
 const [privacy] = defineField("privacy");
 
+const onSubmit = handleSubmit(async (values) => {
+  if (!recaptchaToken.value) {
+    toast.error("Por favor, completa la verificación de reCAPTCHA.");
+    return;
+  }
+
+  try {
+    let fileBase64 = null;
+    let fileNameStr = null;
+
+    if (values.fileBooking instanceof File) {
+      fileNameStr = values.fileBooking.name;
+      
+      fileBase64 = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(values.fileBooking as File);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = (error) => reject(error);
+      });
+    }
+
+    const payload = {
+      ...values,
+      fileBooking: fileBase64,
+      fileName: fileNameStr,
+      recaptchaToken: recaptchaToken.value,
+    };
+
+    const response = await $fetch<{ success: boolean; message: string }>(
+      `${config.public.apiBase}/api/bookings/send-email`,
+      {
+        method: "POST",
+        body: payload,
+      }
+    );
+
+    // 1. Resetear formulario y valores de VeeValidate
+    resetForm();
+    recaptchaToken.value = null;
+    fileName.value = null; // Limpia el texto visual del nombre del archivo en el input personalizado
+
+    // 2. Limpiar físicamente el valor del input file del DOM
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = "";
+    }
+
+    // 3. Reiniciar el reCAPTCHA visualmente en la interfaz
+    const win = window as any;
+    if (win.grecaptcha && typeof win.grecaptcha.reset === "function") {
+      win.grecaptcha.reset();
+    }
+
+    toast.success(response.message);
+  } catch (error: any) {
+    console.error("Error al enviar formulario:", error);
+    const errorMessage = error?.data?.message || "Ocurrió un error al enviar el correo.";
+    toast.error(errorMessage);
+  }
+});
+
 onMounted(() => {
   // Forzamos a que tome la variable pública directamente en el cliente
   siteKey.value = config.public.recaptchaSiteKey;
@@ -55,6 +125,7 @@ onMounted(() => {
     return;
   }
 
+  // Definimos las funciones globales que pide Google
   (window as any).onRecaptchaSuccess = (token: string) => {
     console.log("Token capturado con éxito:", token);
     recaptchaToken.value = token;
@@ -65,43 +136,113 @@ onMounted(() => {
     recaptchaToken.value = null;
   };
 
-  // Función para renderizar el captcha de forma segura si ya está cargado
+  // Función para renderizar de forma segura
   const renderCaptcha = () => {
-    if ((window as any).grecaptcha && typeof (window as any).grecaptcha.render === 'function') {
+    const win = window as any;
+    if (win.grecaptcha && typeof win.grecaptcha.render === "function") {
       try {
-        // Busca todos los divs con la clase g-recaptcha que no se hayan renderizado
-        const containers = document.querySelectorAll('.g-recaptcha');
-        containers.forEach((container) => {
-          if (!container.hasChildNodes()) {
-            (window as any).grecaptcha.render(container, {
-              sitekey: siteKey.value,
-              callback: 'onRecaptchaSuccess',
-              'expired-callback': 'onRecaptchaExpired',
-            });
-          }
-        });
+        const container = document.getElementById(
+          "recaptcha-booking-container",
+        );
+        if (container && !container.hasChildNodes()) {
+          win.grecaptcha.render(container, {
+            sitekey: siteKey.value,
+            callback: "onRecaptchaSuccess",
+            "expired-callback": "onRecaptchaExpired",
+          });
+        }
       } catch (e) {
         console.log("Error al renderizar reCAPTCHA:", e);
       }
     }
   };
 
-  // Inyectar el script de Google si no existe
-  const existingScript = document.querySelector('script[src*="recaptcha/api.js"]');
-  if (!existingScript) {
-    const script = document.createElement("script");
-    script.src = "https://www.google.com/recaptcha/api.js?render=explicit"; // Añadimos ?render=explicit para control total
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      renderCaptcha();
+  // Verificamos si el script ya existe en el DOM
+  let scriptTag = document.querySelector('script[src*="recaptcha/api.js"]');
+
+  if (!scriptTag) {
+    const newScript = document.createElement("script") as HTMLScriptElement;
+    newScript.src = "https://www.google.com/recaptcha/api.js?render=explicit";
+    newScript.async = true;
+    newScript.defer = true;
+    newScript.onload = () => {
+      // Damos un pequeño respiro para que grecaptcha esté 100% disponible
+      setTimeout(renderCaptcha, 150);
     };
-    document.head.appendChild(script);
+    document.head.appendChild(newScript);
   } else {
-    // Si el script ya estaba cargado en otra vista, intentamos renderizarlo inmediatamente con un pequeño respiro del DOM
+    // Si ya estaba cargado de antes, solo intentamos renderizar con un timeout
     setTimeout(renderCaptcha, 200);
   }
+
+  // 👉 AQUÍ LO COLOCAS: Forzamos a que el campo de archivo comience marcado como requerido/vacío
+  if (!fileName.value) {
+    setFieldError("fileBooking", "* El archivo adjunto es obligatorio");
+  }
 });
+
+// onMounted(() => {
+//   // Forzamos a que tome la variable pública directamente en el cliente
+//   siteKey.value = config.public.recaptchaSiteKey;
+//   console.log("Site Key en onMounted:", siteKey.value);
+
+//   if (!siteKey.value) {
+//     console.error("La clave de reCAPTCHA no está definida.");
+//     return;
+//   }
+
+//   (window as any).onRecaptchaSuccess = (token: string) => {
+//     console.log("Token capturado con éxito:", token);
+//     recaptchaToken.value = token;
+//   };
+
+//   (window as any).onRecaptchaExpired = () => {
+//     console.log("El token de reCAPTCHA expiró");
+//     recaptchaToken.value = null;
+//   };
+
+//   // Función para renderizar el captcha de forma segura si ya está cargado
+//   const renderCaptcha = () => {
+//     if (
+//       (window as any).grecaptcha &&
+//       typeof (window as any).grecaptcha.render === "function"
+//     ) {
+//       try {
+//         // Busca todos los divs con la clase g-recaptcha que no se hayan renderizado
+//         const containers = document.querySelectorAll(".g-recaptcha");
+//         containers.forEach((container) => {
+//           if (!container.hasChildNodes()) {
+//             (window as any).grecaptcha.render(container, {
+//               sitekey: siteKey.value,
+//               callback: "onRecaptchaSuccess",
+//               "expired-callback": "onRecaptchaExpired",
+//             });
+//           }
+//         });
+//       } catch (e) {
+//         console.log("Error al renderizar reCAPTCHA:", e);
+//       }
+//     }
+//   };
+
+//   // Inyectar el script de Google si no existe
+//   const existingScript = document.querySelector(
+//     'script[src*="recaptcha/api.js"]',
+//   );
+//   if (!existingScript) {
+//     const script = document.createElement("script");
+//     script.src = "https://www.google.com/recaptcha/api.js?render=explicit"; // Añadimos ?render=explicit para control total
+//     script.async = true;
+//     script.defer = true;
+//     script.onload = () => {
+//       renderCaptcha();
+//     };
+//     document.head.appendChild(script);
+//   } else {
+//     // Si el script ya estaba cargado en otra vista, intentamos renderizarlo inmediatamente con un pequeño respiro del DOM
+//     setTimeout(renderCaptcha, 200);
+//   }
+// });
 
 // Actualiza tu función de carga de archivos existente
 // Asegúrate de extraer setFieldValue de tu useForm (ej: const { setFieldValue, errors, meta } = useForm(...))
@@ -112,11 +253,10 @@ const handleFileUpload = (event: Event) => {
 
   if (file) {
     fileName.value = file.name;
-    // ¡Esta es la clave! Vinculamos el archivo con VeeValidate y Zod
-    setFieldValue('fileBooking', file);
+    setFieldValue("fileBooking", file); // Asigna el archivo válido
   } else {
     fileName.value = null;
-    setFieldValue('fileBooking', undefined);
+    setFieldValue("fileBooking", undefined); // Esto disparará el error de Zod inmediatamente
   }
 };
 const services = computed(() => generalSetting.value?.services);
@@ -128,9 +268,9 @@ const disabled = computed(
 
 <template>
   <!-- enctype="multipart/form-data" -->
-  <form class="p-8 space-y-6">
+  <form class="p-8 space-y-6" @submit.prevent="onSubmit">
     <!-- Sección 1: Información General -->
-    
+
     <div>
       <h3 class="text-lg font-semibold text-slate-800 border-b pb-2 mb-4">
         1. Información de la Empresa y Contacto
@@ -324,7 +464,6 @@ const disabled = computed(
             errors.service
           }}</span>
         </div>
-
         <!-- Fecha estimada del servicio -->
         <div>
           <label
@@ -341,7 +480,6 @@ const disabled = computed(
             errors.dateBooking
           }}</span>
         </div>
-
         <!-- Cantidad -->
         <div class="md:col-span-2">
           <label
@@ -362,7 +500,6 @@ const disabled = computed(
         </div>
       </div>
     </div>
-
     <!-- Sección 3: Documentación y Notas -->
     <div class="pt-4">
       <h3 class="text-lg font-semibold text-slate-800 border-b pb-2 mb-4">
@@ -388,27 +525,33 @@ const disabled = computed(
         </div>
 
         <!-- Carga de archivo -->
-        <div>
-          <label class="block text-sm font-medium text-slate-700 mb-2">
-            Adjuntar documentos <span class="text-red-500">*</span>
-          </label>
+      <!-- Carga de archivo -->
+<div>
+  <label class="block text-sm font-medium text-slate-700 mb-2">
+    Adjuntar documento <span class="text-red-500">*</span>
+  </label>
+  
+  <input
+    type="file"
+    @change="handleFileUpload"
+    name="fileBooking"
+    accept=".pdf, .jpg, .jpeg, .zip"
+    class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer"
+  />
 
-          <input
-            type="file"
-            @change="handleFileUpload"
-            name="archivo"
-            accept=".pdf, .jpg, .jpeg, .zip"
-            class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer border border-slate-300 rounded-lg bg-slate-50"
-          />
+  <!-- Texto aclaratorio -->
+  <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
+    Formatos permitidos: <strong>PDF, JPG, JPEG o ZIP</strong> (máx. 10 MB).<br />
+    <span class="text-slate-400">* Si adjuntas un ZIP, debe contener únicamente archivos PDF o imágenes permitidas.</span>
+  </p>
 
-          <span
-            v-if="errors.fileBooking"
-            class="text-xs text-red-500 mt-1 block"
-          >
-            {{ errors.fileBooking }}
-          </span>
-        </div>
-
+  <span
+    v-if="errors.fileBooking"
+    class="text-xs text-red-500 mt-1 block"
+  >
+    {{ errors.fileBooking }}
+  </span>
+</div>
         <!-- Medio de contacto preferido -->
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-2">
@@ -486,14 +629,9 @@ const disabled = computed(
         </div>
 
         <!-- Componente reCAPTCHA -->
+        <!-- Componente reCAPTCHA -->
         <div class="pt-2 flex flex-col items-start">
-          <div
-            v-if="siteKey"
-            class="g-recaptcha"
-            :data-sitekey="siteKey"
-            data-callback="onRecaptchaSuccess"
-            data-expired-callback="onRecaptchaExpired"
-          ></div>
+          <div v-if="siteKey" id="recaptcha-booking-container"></div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 export const bookingSchema = z.object({
   name: z
@@ -74,25 +74,36 @@ export const bookingSchema = z.object({
           "La fecha de reserva no puede ser anterior al día de hoy o no es válida",
       },
     ),
- amount: z
-  .union([z.string(), z.number()])
-  .refine((val) => val !== "" && val !== null && val !== undefined && String(val).trim() !== "", {
-    message: "* La cantidad es requerida",
-  })
-  .transform((val) => Number(val))
-  .refine((val) => !isNaN(val), {
-    message: "* La cantidad debe ser un número válido",
-  })
-  .refine((val) => val > 0, {
-    message: "* La cantidad debe ser mayor a 0",
-  }),
-  details: z
-    .string()
-    .max(1000, {
-      message: "* Los detalles adicionales no pueden superar los 1000 caracteres",
+  amount: z
+    .union([z.string(), z.number()])
+    .refine(
+      (val) =>
+        val !== "" &&
+        val !== null &&
+        val !== undefined &&
+        String(val).trim() !== "",
+      {
+        message: "* La cantidad es requerida",
+      },
+    )
+    .transform((val) => Number(val))
+    .refine((val) => !isNaN(val), {
+      message: "* La cantidad debe ser un número válido",
     })
-    .optional()
-    .or(z.literal("")), // Permite que sea opcional o que esté completamente vacío
+    .refine((val) => val > 0, {
+      message: "* La cantidad debe ser mayor a 0",
+    }),
+  details: z
+    .string({
+      required_error: "* Los detalles adicionales son obligatorios",
+    })
+    .min(1, {
+      message: "* Los detalles adicionales son obligatorios",
+    })
+    .max(1000, {
+      message:
+        "* Los detalles adicionales no pueden superar los 1000 caracteres",
+    }),
   fileBooking: z
     .custom<File>((val) => val instanceof File, {
       message: "* El archivo adjunto es obligatorio",
@@ -113,7 +124,8 @@ export const bookingSchema = z.object({
         message: "* Solo se permiten archivos PDF, JPG o ZIP",
       },
     ),
-
+  // 👉 Agregas el fileName como opcional aquí:
+  fileName: z.string().optional(),
   methodContact: z.enum(["email", "whatsapp", "llamada"], {
     required_error: "* El medio de contacto es requerido",
     invalid_type_error: "* Selecciona un medio de contacto válido",
