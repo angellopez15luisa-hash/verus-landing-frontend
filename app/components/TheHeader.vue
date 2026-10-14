@@ -83,6 +83,30 @@ const sectionMapping: Record<string, string> = {
   contact: "contacto",
 };
 
+// const handleScrollSpy = () => {
+//   if (route.path !== "/") {
+//     activeSection.value = "";
+//     return;
+//   }
+
+//   const scrollPosition = window.scrollY + window.innerHeight / 3;
+
+//   for (const [id, slug] of Object.entries(sectionMapping)) {
+//     const el = document.getElementById(id);
+//     if (el) {
+//       const top = el.offsetTop;
+//       const height = el.offsetHeight;
+//       if (scrollPosition >= top && scrollPosition < top + height) {
+//         if (activeSection.value !== slug) {
+//           activeSection.value = slug;
+//           window.history.replaceState(history.state, "", `#${slug}`);
+//         }
+//         break;
+//       }
+//     }
+//   }
+// };
+
 const handleScrollSpy = () => {
   if (route.path !== "/") {
     activeSection.value = "";
@@ -148,36 +172,164 @@ watch(
   }
 );
 
+// const scrollToSection = async (targetId: string, spanishSlug: string) => {
+//   activeSection.value = spanishSlug;
+//   closeMenu();
+
+//   if (route.path !== "/") {
+//     await router.push("/");
+
+//     setTimeout(() => {
+//       const element = document.getElementById(targetId);
+//       if (element) {
+//         element.scrollIntoView({ behavior: "smooth" });
+//         window.history.replaceState(history.state, "", `#${spanishSlug}`);
+//       }
+//     }, 100);
+//     return;
+//   }
+
+//   const element = document.getElementById(targetId);
+
+//   if (element) {
+//     element.scrollIntoView({ behavior: "smooth" });
+//     window.history.replaceState(history.state, "", `#${spanishSlug}`);
+//   }
+// };
+
+// const scrollToSection = async (targetId: string, spanishSlug: string) => {
+//   activeSection.value = spanishSlug;
+//   closeMenu();
+
+//   if (route.path !== "/") {
+//     await router.push("/");
+
+//     // Esperamos a que la página principal monte sus elementos en el DOM
+//     setTimeout(() => {
+//       const element = document.getElementById(targetId);
+//       if (element) {
+//         element.scrollIntoView({ behavior: "smooth" });
+//         activeSection.value = spanishSlug;
+//         window.history.replaceState(history.state, "", `#${spanishSlug}`);
+//       }
+//     }, 300); // 300ms le da tiempo suficiente al DOM de montarse
+//     return;
+//   }
+
+//   const element = document.getElementById(targetId);
+
+//   if (element) {
+//     element.scrollIntoView({ behavior: "smooth" });
+//     window.history.replaceState(history.state, "", `#${spanishSlug}`);
+//   }
+// };
+
+// const scrollToSection = async (targetId: string, spanishSlug: string) => {
+//   closeMenu();
+
+//   if (route.path !== "/") {
+//     // 1. Navegamos a la página principal
+//     await router.push("/");
+
+//     // 2. Función de reintento para esperar a que el DOM monte la sección objetivo
+//     const scrollToTarget = (retries = 10) => {
+//       const element = document.getElementById(targetId);
+
+//       if (element) {
+//         // Hacemos scroll suave
+//         element.scrollIntoView({ behavior: "smooth" });
+
+//         // Asignamos la sección activa y actualizamos el hash
+//         activeSection.value = spanishSlug;
+//         window.history.replaceState(history.state, "", `#${spanishSlug}`);
+
+//         // Reaseguramos el foco a los 500ms para que el ScrollSpy no lo pise al bajar
+//         setTimeout(() => {
+//           activeSection.value = spanishSlug;
+//         }, 500);
+//       } else if (retries > 0) {
+//         // Si el DOM aún no está listo, reintentamos en 50ms
+//         setTimeout(() => scrollToTarget(retries - 1), 50);
+//       }
+//     };
+
+//     // Iniciamos la búsqueda del elemento
+//     setTimeout(() => scrollToTarget(), 100);
+//     return;
+//   }
+
+//   // Si ya estamos en la página principal (/)
+//   const element = document.getElementById(targetId);
+//   if (element) {
+//     element.scrollIntoView({ behavior: "smooth" });
+//     activeSection.value = spanishSlug;
+//     window.history.replaceState(history.state, "", `#${spanishSlug}`);
+//   }
+// };
+
+// --- Navegación corregida para subpáginas y página principal ---
 const scrollToSection = async (targetId: string, spanishSlug: string) => {
   activeSection.value = spanishSlug;
   closeMenu();
 
+  // Si estamos en una página interna y hacemos clic para ir a una sección de la Home
   if (route.path !== "/") {
-    await router.push("/");
-
-    setTimeout(() => {
-      const element = document.getElementById(targetId);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-        window.history.replaceState(history.state, "", `#${spanishSlug}`);
-      }
-    }, 100);
+    await router.push(`/#${spanishSlug}`);
     return;
   }
 
+  // Si ya estamos en la Home
   const element = document.getElementById(targetId);
-
   if (element) {
     element.scrollIntoView({ behavior: "smooth" });
     window.history.replaceState(history.state, "", `#${spanishSlug}`);
   }
 };
 
+// Detectar si el usuario llega desde una página interna con un hash en la URL
+watch(
+  () => route.fullPath,
+  async () => {
+    if (route.path === "/" && route.hash) {
+      const targetId = Object.keys(sectionMapping).find(
+        (key) => sectionMapping[key] === route.hash.replace("#", "")
+      );
+      
+      if (targetId) {
+        await nextTick();
+        setTimeout(() => {
+          const element = document.getElementById(targetId);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth" });
+            activeSection.value = route.hash.replace("#", "");
+          }
+        }, 300);
+      }
+    }
+  },
+  { immediate: true }
+);
+
+// const syncActiveFromUrl = () => {
+//   const hash = window.location.hash.replace("#", "");
+//   if (hash) {
+//     activeSection.value = hash;
+//   } else if (route.path === "/") {
+//     activeSection.value = "inicio";
+//   }
+// };
+
 const syncActiveFromUrl = () => {
+  // Si no estamos en la página principal, no marcamos sección activa en la barra
+  if (route.path !== "/") {
+    activeSection.value = "";
+    return;
+  }
+
   const hash = window.location.hash.replace("#", "");
   if (hash) {
     activeSection.value = hash;
-  } else if (route.path === "/") {
+  } else {
     activeSection.value = "inicio";
   }
 };
