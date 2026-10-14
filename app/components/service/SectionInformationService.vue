@@ -27,62 +27,70 @@ const loadPayPalScript = (clientId: string): Promise<void> => {
 
 const renderPayPalButton = async () => {
   await nextTick(); // Asegura que el DOM terminó de renderizarse
-  
+
   const paypal = (window as any).paypal;
   const container = document.getElementById("paypal-button-container");
 
   if (!container) {
-    console.error("❌ No se encontró el contenedor #paypal-button-container en el DOM");
+    console.error(
+      "❌ No se encontró el contenedor #paypal-button-container en el DOM",
+    );
     return;
   }
-
   if (!paypal) {
-    console.error("❌ El SDK de PayPal no se cargó correctamente en window.paypal");
+    console.error(
+      "❌ El SDK de PayPal no se cargó correctamente en window.paypal",
+    );
     return;
   }
 
   try {
     container.innerHTML = ""; // Limpiar contenedor por seguridad
 
-    paypal.Buttons({
-      style: {
-        layout: "vertical",
-        color: "gold",
-        shape: "pill",
-        label: "pay",
-      },
+    paypal
+      .Buttons({
+        style: {
+          layout: "vertical",
+          color: "gold",
+          shape: "pill",
+          label: "pay",
+        },
 
-      createOrder: (data: any, actions: any) => {
-        return actions.order.create({
-          purchase_units: [
-            {
-              description: props.service?.title || "Reserva de Asesoría - ChinaVerus",
-              amount: {
-                currency_code: "USD",
-                value: "299.00",
+        createOrder: (data: any, actions: any) => {
+          return actions.order.create({
+            purchase_units: [
+              {
+                description:
+                  props.service?.title || "Reserva de Asesoría - ChinaVerus",
+                amount: {
+                  currency_code: "USD",
+                  value: "299.00",
+                },
               },
-            },
-          ],
-        });
-      },
+            ],
+          });
+        },
 
-      onApprove: async (data: any, actions: any) => {
-        try {
-          const details = await actions.order.capture();
-          console.log("Pago completado por:", details.payer.name.given_name);
-          alert(`¡Pago realizado con éxito por ${details.payer.name.given_name}!`);
-        } catch (err) {
-          console.error("Error al capturar el pago:", err);
-          alert("Hubo un problema al procesar el pago con PayPal.");
-        }
-      },
+        onApprove: async (data: any, actions: any) => {
+          try {
+            const details = await actions.order.capture();
+            console.log("Pago completado por:", details.payer.name.given_name);
+            alert(
+              `¡Pago realizado con éxito por ${details.payer.name.given_name}!`,
+            );
+          } catch (err) {
+            console.error("Error al capturar el pago:", err);
+            alert("Hubo un problema al procesar el pago con PayPal.");
+          }
+        },
 
-      onError: (err: any) => {
-        console.error("Error en PayPal SDK Buttons:", err);
-        alert("Ocurrió un error con la pasarela de pagos de PayPal.");
-      },
-    }).render("#paypal-button-container");
-    
+        onError: (err: any) => {
+          console.error("Error en PayPal SDK Buttons:", err);
+          alert("Ocurrió un error con la pasarela de pagos de PayPal.");
+        },
+      })
+      .render("#paypal-button-container");
+
     console.log("✅ Botón de PayPal renderizado con éxito");
   } catch (error) {
     console.error("❌ Error al renderizar el botón de PayPal:", error);
@@ -117,7 +125,9 @@ onMounted(() => {
   // 2. Inicializar PayPal
   const clientId = config.public.paypalClientId as string;
   if (!clientId) {
-    console.error("❌ No se encontró el Client ID de PayPal en el archivo .env");
+    console.error(
+      "❌ No se encontró el Client ID de PayPal en el archivo .env",
+    );
     return;
   }
 

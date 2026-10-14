@@ -21,6 +21,13 @@ export default defineNuxtConfig({
     // pageTransition: { name: 'page', mode: 'out-in' },
     // pageTransition: { name: 'page', mode: 'out-in' },
     head: {
+      script: [
+        {
+          // Script oficial del elemento de traducción de Google
+          src: 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit',
+          async: true
+        }
+      ],
       // script: [
       //   {
       //     src: "https://www.google.com/recaptcha/api.js",
