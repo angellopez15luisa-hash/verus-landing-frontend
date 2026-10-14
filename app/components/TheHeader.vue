@@ -7,6 +7,8 @@ const activeSection = ref("inicio");
 
 // --- TRADUCCIÓN E IDIOMAS ---
 const currentLang = ref("es");
+const isLangMenuOpen = ref(false);
+const langDropdownRef = ref<HTMLElement | null>(null);
 
 const langLabels: Record<string, string> = {
   es: "ES",
@@ -16,6 +18,20 @@ const langLabels: Record<string, string> = {
 
 const currentLangLabel = computed(() => langLabels[currentLang.value] || "ES");
 
+const toggleLangMenu = () => {
+  isLangMenuOpen.value = !isLangMenuOpen.value;
+};
+
+// Cerrar el menú si el usuario hace clic fuera del selector
+const handleClickOutside = (event: MouseEvent) => {
+  if (
+    langDropdownRef.value &&
+    !langDropdownRef.value.contains(event.target as Node)
+  ) {
+    isLangMenuOpen.value = false;
+  }
+};
+
 // Detectar idioma desde la cookie de Google al cargar
 onMounted(() => {
   const match = document.cookie.match(/googtrans=\/es\/([a-z]{2})/);
@@ -24,10 +40,12 @@ onMounted(() => {
   } else {
     currentLang.value = "es";
   }
+  window.addEventListener("click", handleClickOutside);
 });
 
 // Función infalible para cambiar idioma con cookie + reload limpio
 const setLanguage = (lang: string) => {
+  isLangMenuOpen.value = false;
   if (currentLang.value === lang) return;
 
   currentLang.value = lang;
@@ -120,6 +138,7 @@ onUnmounted(() => {
     observer.disconnect();
   }
   window.removeEventListener("scroll", handleScrollSpy);
+  window.removeEventListener("click", handleClickOutside);
 });
 
 watch(
@@ -268,19 +287,26 @@ const goToHome = async () => {
       <!-- Right side: Language, Social & Mobile Button -->
       <div class="flex items-center space-x-3">
         
-        <!-- Selector de Idiomas en ESCRITORIO -->
-        <div class="relative group hidden sm:block">
+        <!-- Selector de Idiomas en ESCRITORIO (Abrir/cerrar mediante clic) -->
+        <div class="relative hidden sm:block" ref="langDropdownRef">
           <button
+            @click.stop="toggleLangMenu"
             class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
             type="button"
           >
             <i class="fa-solid fa-globe text-vblue-600"></i>
             <span class="uppercase">{{ currentLangLabel }}</span>
-            <i class="fa-solid fa-chevron-down text-[10px] text-slate-500 ml-0.5"></i>
+            <i 
+              class="fa-solid fa-chevron-down text-[10px] text-slate-500 ml-0.5 transition-transform duration-200"
+              :class="{ 'rotate-180': isLangMenuOpen }"
+            ></i>
           </button>
 
-          <!-- Menú desplegable -->
-          <div class="absolute right-0 mt-1 w-28 bg-white border border-slate-200 rounded-xl shadow-lg py-1 hidden group-hover:block z-50">
+          <!-- Menú desplegable estable -->
+          <div 
+            v-show="isLangMenuOpen"
+            class="absolute right-0 mt-2 w-32 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-50 transition-all"
+          >
             <button 
               @click="setLanguage('es')" 
               class="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors flex items-center justify-between cursor-pointer"
