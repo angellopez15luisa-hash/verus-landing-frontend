@@ -1,4 +1,4 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+// nuxt.config.ts (CORREGIDO)
 export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
@@ -14,32 +14,16 @@ export default defineNuxtConfig({
   components: [
     {
       path: "~/components",
-      pathPrefix: false, // <-- Esto evita que anteponga el nombre de las subcarpetas
+      pathPrefix: false,
     },
   ],
   app: {
-    // pageTransition: { name: 'page', mode: 'out-in' },
-    // pageTransition: { name: 'page', mode: 'out-in' },
     head: {
-      script: [
-        {
-          // Script oficial del elemento de traducción de Google
-          src: 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit',
-          async: true
-        }
-      ],
-      // script: [
-      //   {
-      //     src: "https://www.google.com/recaptcha/api.js",
-      //     async: true,
-      //     defer: true,
-      //   },
-      // ],
+      // ❌ ELIMINAMOS EL SCRIPT DE GOOGLE TRANSLATE DE AQUÍ
       htmlAttrs: {
-        lang: "es", // ¡Esto es vital para el SEO y Accesibilidad!
+        lang: "es",
       },
-      title:
-        "China Verus | Quality Control & Supplier Inspection Services in Asia",
+      title: "China Verus | Quality Control & Supplier Inspection Services in Asia",
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1.0" },
         { charset: "UTF-8" },
@@ -58,10 +42,8 @@ export default defineNuxtConfig({
   },
   hooks: {
     "pages:extend"(pages) {
-      // Recorremos las páginas para buscar la que se llame 'services' o tenga esa ruta
       pages.forEach((page) => {
         if (page.path.startsWith("/services")) {
-          // Reemplazamos /services por /servicios en la URL pública
           page.path = page.path.replace("/services", "/servicios");
         }
       });
