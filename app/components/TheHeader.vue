@@ -52,21 +52,20 @@ const setLanguage = (lang: string) => {
 
   currentLang.value = lang;
 
-  // Garantizar ejecución exclusiva en el cliente
   if (import.meta.client) {
-    const hostname = window.location.hostname;
+    const domain = window.location.hostname;
     
     if (lang === "es") {
       document.cookie = "googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${hostname}`;
-      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${hostname}`;
+      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${domain}`;
+      document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${domain}`;
     } else {
-      document.cookie = `googtrans=/es/${lang}; path=/; domain=${hostname}`;
+      document.cookie = `googtrans=/es/${lang}; path=/; domain=${domain}`;
       document.cookie = `googtrans=/es/${lang}; path=/`;
-      document.cookie = `googtrans=/es/${lang}; path=/; domain=.${hostname}`;
+      document.cookie = `googtrans=/es/${lang}; path=/; domain=.${domain}`;
     }
 
-    // Forzar recarga solo en el cliente
+    // Recargar la página en el navegador
     window.location.reload();
   }
 };
@@ -162,7 +161,7 @@ watch(
   }
 );
 
-// --- Navegación corregida para subpáginas y página principal ---
+// --- Navegación para subpáginas y página principal ---
 const scrollToSection = async (targetId: string, spanishSlug: string) => {
   activeSection.value = spanishSlug;
   closeMenu();
@@ -181,7 +180,7 @@ const scrollToSection = async (targetId: string, spanishSlug: string) => {
   }
 };
 
-// Detectar si el usuario llega desde una página interna con un hash en la URL
+// Detectar si llega desde subpágina con hash en la URL
 watch(
   () => route.fullPath,
   async () => {
@@ -330,8 +329,8 @@ const goToHome = async () => {
       <!-- Right side: Language, Social & Mobile Button -->
       <div class="flex items-center space-x-3">
         
-        <!-- Selector de Idiomas en ESCRITORIO (Abrir/cerrar mediante clic) -->
-        <div class="relative hidden sm:block" ref="langDropdownRef">
+        <!-- Selector de Idiomas Principal (Visible en escritorio y móvil) -->
+        <div class="relative flex items-center" ref="langDropdownRef">
           <button
             @click.stop="toggleLangMenu"
             class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
@@ -345,10 +344,10 @@ const goToHome = async () => {
             ></i>
           </button>
 
-          <!-- Menú desplegable estable -->
+          <!-- Menú desplegable -->
           <div 
             v-show="isLangMenuOpen"
-            class="absolute right-0 mt-2 w-32 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-50 transition-all"
+            class="absolute right-0 top-full mt-2 w-32 bg-white border border-slate-200 rounded-xl shadow-xl py-1 z-50 transition-all"
           >
             <button 
               @click="setLanguage('es')" 
@@ -374,7 +373,7 @@ const goToHome = async () => {
           </div>
         </div>
 
-        <!-- Social Media Icons -->
+        <!-- Social Media Icons (Solo Escritorio) -->
         <div class="hidden md:flex items-center space-x-2 pl-2 border-l border-slate-200">
           <a
             :href="getSocialUrl('linkedin')"
@@ -476,45 +475,8 @@ const goToHome = async () => {
         >
       </nav>
 
-      <!-- Elementos inferiores en MOBILE (Idioma y Redes) -->
-      <div class="w-full max-w-md pt-4 flex items-center justify-between border-t border-slate-200">
-        
-        <!-- Selector de Idiomas en MOBILE -->
-        <div class="relative group">
-          <button
-            class="flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition-colors cursor-pointer"
-            type="button"
-          >
-            <i class="fa-solid fa-globe text-vblue-600"></i>
-            <span class="uppercase">{{ currentLangLabel }}</span>
-            <i class="fa-solid fa-chevron-down text-[10px] text-slate-500 ml-0.5"></i>
-          </button>
-
-          <div class="absolute left-0 bottom-full mb-1 w-28 bg-white border border-slate-200 rounded-xl shadow-lg py-1 hidden group-hover:block z-50">
-            <button 
-              @click="setLanguage('es')" 
-              class="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors flex items-center justify-between"
-            >
-              <span>Español</span>
-              <span v-if="currentLang === 'es'" class="text-vblue-600 font-bold">✓</span>
-            </button>
-            <button 
-              @click="setLanguage('en')" 
-              class="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors flex items-center justify-between"
-            >
-              <span>English</span>
-              <span v-if="currentLang === 'en'" class="text-vblue-600 font-bold">✓</span>
-            </button>
-            <button 
-              @click="setLanguage('pt')" 
-              class="w-full text-left px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-100 transition-colors flex items-center justify-between"
-            >
-              <span>Português</span>
-              <span v-if="currentLang === 'pt'" class="text-vblue-600 font-bold">✓</span>
-            </button>
-          </div>
-        </div>
-
+      <!-- Elementos inferiores en MOBILE (Redes) -->
+      <div class="w-full max-w-md pt-4 flex items-center justify-center border-t border-slate-200">
         <div class="flex items-center space-x-3">
           <a
             :href="getSocialUrl('linkedin')"
@@ -544,12 +506,9 @@ const goToHome = async () => {
       </div>
     </div>
 
-    <!-- Contenedor único e invisible de Google Translate en la raíz -->
-   <ClientOnly>
-      <div 
-        id="google_translate_element" 
-        style="width: 0; height: 0; overflow: hidden; opacity: 0; position: absolute;"
-      ></div>
+    <!-- Contenedor único e invisible de Google Translate envuelto en ClientOnly -->
+    <ClientOnly>
+      <div id="google_translate_element" style="width: 0; height: 0; overflow: hidden; opacity: 0; position: absolute;"></div>
     </ClientOnly>
   </header>
 </template>
